@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace vehicle_parts_management_backend.Data
+namespace vehicle_parts_management_backend.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -9,5 +9,9 @@ namespace vehicle_parts_management_backend.Data
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
