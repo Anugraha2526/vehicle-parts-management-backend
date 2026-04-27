@@ -57,6 +57,13 @@ public sealed class VendorService : IVendorService
         var vendor = await _vendorRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new KeyNotFoundException($"Vendor with id '{id}' was not found.");
 
+        // check email uniqueness only when email is changing
+        if (dto.Email != null && !string.Equals(vendor.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            if (await _vendorRepository.EmailExistsAsync(dto.Email, cancellationToken))
+                throw new ArgumentException($"Vendor with email '{dto.Email}' already exists.");
+        }
+
         if (dto.VendorName != null) vendor.VendorName = dto.VendorName;
         if (dto.ContactPerson != null) vendor.ContactPerson = dto.ContactPerson;
         if (dto.Phone != null) vendor.Phone = dto.Phone;
