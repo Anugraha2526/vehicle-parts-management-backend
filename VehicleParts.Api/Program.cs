@@ -75,6 +75,14 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// register staff repository and service for dependency injection
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IStaffService, StaffService>();
+
+// AutoMapper — scans all loaded assemblies
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// CORS — allow all origins, methods, headers (dev mode)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
