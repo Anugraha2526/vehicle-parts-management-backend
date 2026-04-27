@@ -20,7 +20,6 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
 
-    // Finance module tables (schema placeholder for architecture phase).
     public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
     public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
     public DbSet<LowStockNotification> LowStockNotifications => Set<LowStockNotification>();
@@ -33,5 +32,49 @@ public sealed class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<PurchaseInvoice>(builder =>
+        {
+            builder.Property(invoice => invoice.InvoiceNumber)
+                .HasMaxLength(64)
+                .IsRequired();
+
+            builder.Property(invoice => invoice.TotalAmount)
+                .HasPrecision(18, 2);
+
+            builder.HasMany(invoice => invoice.Items)
+                .WithOne(item => item.PurchaseInvoice)
+                .HasForeignKey(item => item.PurchaseInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PurchaseInvoiceItem>(builder =>
+        {
+            builder.Property(item => item.UnitCost)
+                .HasPrecision(18, 2);
+
+            builder.HasIndex(item => item.PartId);
+        });
+
+        modelBuilder.Entity<LowStockNotification>(builder =>
+        {
+            builder.Property(alert => alert.PartName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            builder.HasIndex(alert => new { alert.PartId, alert.IsAcknowledged });
+        });
+
+        modelBuilder.Entity<SalesInvoice>(builder =>
+        {
+            builder.Property(invoice => invoice.TotalAmount)
+                .HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<Part>(builder =>
+        {
+            builder.Property(part => part.UnitPrice)
+                .HasPrecision(18, 2);
+        });
     }
 }
