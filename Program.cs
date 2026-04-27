@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using vehicle_parts_management_backend.Application.Interfaces;
+using vehicle_parts_management_backend.Application.Services;
 using vehicle_parts_management_backend.Extensions;
 using vehicle_parts_management_backend.Infrastructure.Data;
+using vehicle_parts_management_backend.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +80,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+
+// register staff repository and service for dependency injection
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IStaffService, StaffService>();
 
 // AutoMapper — scans all loaded assemblies
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
