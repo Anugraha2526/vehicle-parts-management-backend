@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VehicleParts.Domain.Modules.AdminCore.Entities;
 using VehicleParts.Domain.Modules.CustomerCRM.Entities;
 using VehicleParts.Domain.Modules.CustomerPortal.Entities;
 using VehicleParts.Domain.Modules.Finance.Entities;
 using VehicleParts.Domain.Modules.Sales.Entities;
+using VehicleParts.Domain.Modules.AdminCore.Entities;
 
 namespace VehicleParts.Infrastructure.Persistence;
 
@@ -25,6 +26,7 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<LowStockNotification> LowStockNotifications => Set<LowStockNotification>();
 
     public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
+    public DbSet<SalesInvoiceItem> SalesInvoiceItems => Set<SalesInvoiceItem>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<PartRequest> PartRequests => Set<PartRequest>();
     public DbSet<ServiceReview> ServiceReviews => Set<ServiceReview>();
@@ -67,8 +69,25 @@ public sealed class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<SalesInvoice>(builder =>
         {
-            builder.Property(invoice => invoice.TotalAmount)
-                .HasPrecision(18, 2);
+            builder.Property(inv => inv.InvoiceNumber).HasMaxLength(64).IsRequired();
+            builder.Property(inv => inv.SubTotal).HasPrecision(18, 2);
+            builder.Property(inv => inv.DiscountAmount).HasPrecision(18, 2);
+            builder.Property(inv => inv.TotalAmount).HasPrecision(18, 2);
+
+            builder.HasMany(inv => inv.Items)
+                .WithOne(item => item.SalesInvoice)
+                .HasForeignKey(item => item.SalesInvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<SalesInvoiceItem>(builder =>
+        {
+            builder.Property(item => item.PartName).HasMaxLength(200).IsRequired();
+            builder.Property(item => item.UnitPrice).HasPrecision(18, 2);
+            builder.HasIndex(item => item.SalesInvoiceId);
+
+            // SubTotal is computed — ignore it so EF doesn't map it to a column
+            builder.Ignore(item => item.SubTotal);
         });
 
         modelBuilder.Entity<Part>(builder =>
