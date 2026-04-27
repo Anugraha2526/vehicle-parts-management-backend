@@ -31,14 +31,10 @@ public sealed class ReportRepository : IReportRepository
         var salesInvoiceCount = await salesQuery.CountAsync(cancellationToken);
 
         var totalPurchaseAmount = await purchaseQuery
-            .Select(invoice => invoice.TotalAmount)
-            .DefaultIfEmpty(0m)
-            .SumAsync(cancellationToken);
+            .SumAsync(invoice => (decimal?)invoice.TotalAmount, cancellationToken) ?? 0m;
 
         var totalSalesAmount = await salesQuery
-            .Select(invoice => invoice.TotalAmount)
-            .DefaultIfEmpty(0m)
-            .SumAsync(cancellationToken);
+            .SumAsync(invoice => (decimal?)invoice.TotalAmount, cancellationToken) ?? 0m;
 
         return new FinancialReportDto
         {
