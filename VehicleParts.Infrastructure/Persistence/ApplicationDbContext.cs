@@ -76,5 +76,16 @@ public sealed class ApplicationDbContext : DbContext
             builder.Property(part => part.UnitPrice)
                 .HasPrecision(18, 2);
         });
+
+        modelBuilder.Entity<Vendor>(builder =>
+        {
+            builder.HasIndex(v => v.Email).IsUnique();
+            builder.Property(v => v.VendorName).HasMaxLength(200).IsRequired();
+            builder.Property(v => v.Email).HasMaxLength(150).IsRequired();
+            builder.Property(v => v.ContactPerson).HasMaxLength(100).IsRequired();
+            builder.Property(v => v.Phone).HasMaxLength(20).IsRequired();
+            builder.Property(v => v.Address).HasMaxLength(500);
+            builder.Property(v => v.Notes).HasMaxLength(500);
+        });
     }
 }
