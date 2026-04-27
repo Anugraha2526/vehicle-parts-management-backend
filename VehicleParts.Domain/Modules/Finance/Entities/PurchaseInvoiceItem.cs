@@ -11,6 +11,5 @@ public sealed class PurchaseInvoiceItem : BaseEntity
     public int Quantity { get; set; }
     public decimal UnitCost { get; set; }
 
-    // TODO(Member 2): add invariant checks and derived values.
     public decimal LineTotal => UnitCost * Quantity;
 }
