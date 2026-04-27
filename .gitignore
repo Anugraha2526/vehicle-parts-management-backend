@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Ignore local dev settings with secrets
 appsettings.Development.json
+# Local backup for temporarily parked Member 2 finance implementation
+Member2_Finance_Backup/
+

@@ -1,6 +1,0 @@
-@vehicle_parts_management_backend_HostAddress = http://localhost:5231
-
-GET {{vehicle_parts_management_backend_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

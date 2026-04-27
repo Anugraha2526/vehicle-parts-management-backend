@@ -1,0 +1,6 @@
+﻿@VehicleParts.Api_HostAddress = http://localhost:5231
+
+GET {{VehicleParts.Api_HostAddress}}/api/customers
+Accept: application/json
+
+###
