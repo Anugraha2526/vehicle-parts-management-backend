@@ -1,11 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VehicleParts.Application.Modules.AdminCore.Interfaces;
 using VehicleParts.Application.Modules.Finance.Interfaces;
+using VehicleParts.Application.Modules.Sales.Interfaces;
 using VehicleParts.Infrastructure.Persistence;
 using VehicleParts.Infrastructure.Repositories.AdminCore;
 using VehicleParts.Infrastructure.Repositories.Finance;
+using VehicleParts.Infrastructure.Repositories.Sales;
 using VehicleParts.Infrastructure.Security;
 
 namespace VehicleParts.Infrastructure.DependencyInjection;
@@ -27,6 +29,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPurchaseRepository, PurchaseRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<ILowStockRepository, LowStockRepository>();
+
+        services.AddScoped<ISalesRepository, SalesRepository>();
 
         return services;
     }
