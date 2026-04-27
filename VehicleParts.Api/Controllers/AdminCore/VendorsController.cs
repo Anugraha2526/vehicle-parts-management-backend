@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using VehicleParts.Application.Modules.AdminCore.DTOs;
 using VehicleParts.Application.Modules.AdminCore.Interfaces;
 
@@ -41,7 +42,10 @@ public sealed class VendorsController : ControllerBase
         {
             var result = await _vendorService.GetVendorByIdAsync(id, cancellationToken);
             if (result is null)
+            {
+                _logger.LogWarning("vendor {Id} not found", id);
                 return NotFound($"Vendor with id '{id}' was not found.");
+            }
 
             return Ok(result);
         }
@@ -90,7 +94,12 @@ public sealed class VendorsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning("vendor {Id} not found for update", id);
             return NotFound(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Conflict(ex.Message);
         }
         catch (Exception ex)
         {
