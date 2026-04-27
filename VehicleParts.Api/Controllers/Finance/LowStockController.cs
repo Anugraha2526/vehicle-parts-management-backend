@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
@@ -6,18 +7,40 @@ namespace VehicleParts.Api.Controllers.Finance;
 [Route("api/[controller]")]
 public sealed class LowStockController : ControllerBase
 {
-    // TODO(Member 2): implement low-stock scan and admin notifications.
-    [HttpGet("alerts")]
-    public IActionResult GetLowStockAlerts([FromQuery] bool scan = true, [FromQuery] int threshold = 10)
+    private readonly ILowStockService _lowStockService;
+
+    public LowStockController(ILowStockService lowStockService)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented,
-            "Architecture phase only. Member 2 Finance implementation moved to Member2_Finance_Backup.");
+        _lowStockService = lowStockService;
+    }
+
+    [HttpGet("alerts")]
+    public async Task<IActionResult> GetLowStockAlerts(
+        [FromQuery] bool scan = true,
+        [FromQuery] int threshold = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var result = scan
+            ? await _lowStockService.ScanAndNotifyLowStockAsync(threshold, cancellationToken)
+            : await _lowStockService.GetActiveAlertsAsync(cancellationToken);
+
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
 
     [HttpPost("alerts/{alertId:guid}/acknowledge")]
-    public IActionResult AcknowledgeLowStockAlert(Guid alertId)
+    public async Task<IActionResult> AcknowledgeLowStockAlert(Guid alertId, CancellationToken cancellationToken)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented,
-            "Architecture phase only. Member 2 Finance implementation moved to Member2_Finance_Backup.");
+        var result = await _lowStockService.AcknowledgeAlertAsync(alertId, cancellationToken);
+        if (!result.Success)
+        {
+            return NotFound(result);
+        }
+
+        return Ok(result);
     }
 }

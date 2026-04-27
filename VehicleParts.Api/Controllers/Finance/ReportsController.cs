@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
@@ -6,11 +7,26 @@ namespace VehicleParts.Api.Controllers.Finance;
 [Route("api/[controller]")]
 public sealed class ReportsController : ControllerBase
 {
-    // TODO(Member 2): implement daily/monthly/yearly financial reports.
-    [HttpGet("financial")]
-    public IActionResult GetFinancialReports([FromQuery] string type)
+    private readonly IReportService _reportService;
+
+    public ReportsController(IReportService reportService)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented,
-            "Architecture phase only. Member 2 Finance implementation moved to Member2_Finance_Backup.");
+        _reportService = reportService;
     }
+
+    [HttpGet("financial")]
+    public async Task<IActionResult> GetFinancialReports(
+        [FromQuery] string type,
+        CancellationToken cancellationToken)
+    {
+        var result = await _reportService.GetFinancialReportAsync(type, cancellationToken);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    // Customer reporting belongs to Member 5 (Customer Portal scope).
 }

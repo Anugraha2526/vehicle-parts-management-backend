@@ -6,12 +6,30 @@ namespace VehicleParts.Application.Modules.Finance.Services;
 
 public sealed class ReportService : IReportService
 {
-    public Task<ServiceResult<FinancialReportDto>> GetFinancialReportAsync(
+    private readonly IReportRepository _reportRepository;
+
+    public ReportService(IReportRepository reportRepository)
+    {
+        _reportRepository = reportRepository;
+    }
+
+    public async Task<ServiceResult<FinancialReportDto>> GetFinancialReportAsync(
         string type,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(
-            ServiceResult<FinancialReportDto>.Fail(
-                "Temporarily disabled. Member 2 implementation is parked in Member2_Finance_Backup."));
+        if (string.IsNullOrWhiteSpace(type))
+        {
+            return ServiceResult<FinancialReportDto>.Fail("Report type is required. Use daily, monthly, or yearly.");
+        }
+
+        try
+        {
+            var report = await _reportRepository.GetFinancialReportAsync(type, cancellationToken);
+            return ServiceResult<FinancialReportDto>.Ok(report, "Financial report generated.");
+        }
+        catch (ArgumentException ex)
+        {
+            return ServiceResult<FinancialReportDto>.Fail(ex.Message);
+        }
     }
 }

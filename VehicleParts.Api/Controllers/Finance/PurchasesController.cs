@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Finance.DTOs;
+using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
@@ -7,11 +8,24 @@ namespace VehicleParts.Api.Controllers.Finance;
 [Route("api/[controller]")]
 public sealed class PurchasesController : ControllerBase
 {
-    // TODO(Member 2): implement purchase invoice flow for stock updates.
-    [HttpPost("invoice")]
-    public IActionResult CreatePurchaseInvoice([FromBody] CreatePurchaseInvoiceDto request)
+    private readonly IPurchaseService _purchaseService;
+
+    public PurchasesController(IPurchaseService purchaseService)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented,
-            "Architecture phase only. Member 2 Finance implementation moved to Member2_Finance_Backup.");
+        _purchaseService = purchaseService;
+    }
+
+    [HttpPost("invoice")]
+    public async Task<IActionResult> CreatePurchaseInvoice(
+        [FromBody] CreatePurchaseInvoiceDto request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _purchaseService.CreatePurchaseInvoiceAsync(request, cancellationToken);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
 }
