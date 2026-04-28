@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Sales.DTOs;
 using VehicleParts.Application.Modules.Sales.Interfaces;
@@ -7,7 +6,6 @@ namespace VehicleParts.Api.Controllers.Sales;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin,Staff")]
 public sealed class SalesController : ControllerBase
 {
     private readonly ISalesService _salesService;
@@ -17,6 +15,18 @@ public sealed class SalesController : ControllerBase
     {
         _salesService = salesService;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Gets a list of recent sales invoices.
+    /// </summary>
+    [HttpGet("invoice")]
+    public async Task<IActionResult> GetRecentInvoices(
+        [FromQuery] int limit = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _salesService.GetRecentInvoicesAsync(limit, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>

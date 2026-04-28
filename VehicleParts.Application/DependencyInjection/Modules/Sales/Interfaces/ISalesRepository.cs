@@ -13,4 +13,7 @@ public interface ISalesRepository
 
     /// <summary>Returns an invoice with its items by ID (used for email sending).</summary>
     Task<SalesInvoice?> GetSalesInvoiceByIdAsync(Guid invoiceId, CancellationToken cancellationToken);
+
+    /// <summary>Returns recent sales invoices.</summary>
+    Task<List<SalesInvoice>> GetRecentInvoicesAsync(int limit, CancellationToken cancellationToken);
 }
