@@ -2,6 +2,7 @@ using VehicleParts.Domain.Modules.AdminCore.Entities;
 
 namespace VehicleParts.Application.Modules.AdminCore.Interfaces;
 
+// defines data access contract for vendor operations
 public interface IVendorRepository
 {
     Task<IReadOnlyList<Vendor>> GetAllAsync(CancellationToken cancellationToken = default);

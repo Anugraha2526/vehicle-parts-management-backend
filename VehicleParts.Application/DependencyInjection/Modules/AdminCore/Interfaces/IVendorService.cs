@@ -2,6 +2,7 @@ using VehicleParts.Application.Modules.AdminCore.DTOs;
 
 namespace VehicleParts.Application.Modules.AdminCore.Interfaces;
 
+// defines business logic contract for vendor management
 public interface IVendorService
 {
     Task<IReadOnlyList<VendorResponseDto>> GetAllVendorsAsync(CancellationToken cancellationToken = default);

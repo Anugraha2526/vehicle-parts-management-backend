@@ -2,6 +2,7 @@ using VehicleParts.Application.Modules.AdminCore.DTOs;
 
 namespace VehicleParts.Application.Modules.AdminCore.Interfaces;
 
+// defines business logic contract for staff management
 public interface IStaffService
 {
     Task<StaffResponseDto> RegisterStaffAsync(RegisterStaffDto dto, CancellationToken cancellationToken = default);
