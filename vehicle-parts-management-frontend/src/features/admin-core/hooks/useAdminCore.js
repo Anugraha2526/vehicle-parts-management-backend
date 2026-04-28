@@ -1,0 +1,3 @@
+export function useAdminCore() {
+  return {};
+}
