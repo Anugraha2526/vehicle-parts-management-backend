@@ -2,6 +2,7 @@ using VehicleParts.Domain.Modules.AdminCore.Entities;
 
 namespace VehicleParts.Application.Modules.AdminCore.Interfaces;
 
+// defines data access contract for staff operations
 public interface IStaffRepository
 {
     Task<StaffMember?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
