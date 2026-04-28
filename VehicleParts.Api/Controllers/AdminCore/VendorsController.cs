@@ -56,6 +56,7 @@ public sealed class VendorsController : ControllerBase
         }
     }
 
+    // return 409 if email already belongs to another vendor
     [HttpPost]
     public async Task<IActionResult> CreateVendor([FromBody] CreateVendorDto dto, CancellationToken cancellationToken)
     {
@@ -78,6 +79,7 @@ public sealed class VendorsController : ControllerBase
         }
     }
 
+    // only update fields that were actually sent in the request
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateVendor(Guid id, [FromBody] UpdateVendorDto dto, CancellationToken cancellationToken)
     {
