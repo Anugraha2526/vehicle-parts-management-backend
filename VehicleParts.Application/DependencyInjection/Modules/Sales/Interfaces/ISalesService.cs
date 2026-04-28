@@ -10,5 +10,7 @@ public interface ISalesService
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult> SendInvoiceEmailAsync(Guid invoiceId, CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<List<SalesInvoiceResponseDto>>> GetRecentInvoicesAsync(int limit = 10, CancellationToken cancellationToken = default);
 }
 

@@ -51,4 +51,13 @@ public sealed class SalesRepository : ISalesRepository
             .Include(inv => inv.Items)
             .FirstOrDefaultAsync(inv => inv.Id == invoiceId, cancellationToken);
     }
+
+    public async Task<List<SalesInvoice>> GetRecentInvoicesAsync(int limit, CancellationToken cancellationToken)
+    {
+        return await _db.SalesInvoices
+            .Include(inv => inv.Customer)
+            .OrderByDescending(inv => inv.CreatedAtUtc)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+    }
 }
