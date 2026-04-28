@@ -90,6 +90,9 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
+// Register Application Services
+builder.Services.AddScoped<vehicle_parts_management_backend.Application.Interfaces.ICustomerService, vehicle_parts_management_backend.Application.Services.CustomerService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -105,4 +108,37 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Seed Sample Data
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated();
+
+    if (!context.Users.Any(u => u.Role == "Customer"))
+    {
+        var sampleCustomer = new vehicle_parts_management_backend.Domain.Entities.User
+        {
+            FullName = "Aarav Sharma",
+            Email = "aarav@example.com",
+            PhoneNumber = "9841234567",
+            Address = "Kathmandu, Nepal",
+            Role = "Customer",
+            IsActive = true
+        };
+        context.Users.Add(sampleCustomer);
+        context.SaveChanges();
+
+        context.Vehicles.Add(new vehicle_parts_management_backend.Domain.Entities.Vehicle
+        {
+            UserId = sampleCustomer.Id,
+            VehicleNumber = "BA-1-PA-1234",
+            Make = "Toyota",
+            Model = "Corolla",
+            Year = 2022
+        });
+        context.SaveChanges();
+    }
+}
+
 app.Run();
