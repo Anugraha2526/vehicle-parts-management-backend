@@ -3,6 +3,7 @@ using VehicleParts.Domain.Modules.AdminCore.Enums;
 
 namespace VehicleParts.Domain.Modules.AdminCore.Entities;
 
+// represents a system user with admin or staff role
 public sealed class StaffMember : BaseEntity
 {
     public string FullName { get; set; } = string.Empty;
