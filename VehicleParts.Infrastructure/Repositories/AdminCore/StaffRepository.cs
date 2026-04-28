@@ -14,18 +14,26 @@ public sealed class StaffRepository : IStaffRepository
         _dbContext = dbContext;
     }
 
+    // find one staff member by id without tracking
     public async Task<StaffMember?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        => await _dbContext.StaffMembers.FindAsync([id], cancellationToken);
+        => await _dbContext.StaffMembers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
+    // find one staff member by email, case-insensitive
     public async Task<StaffMember?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
         => await _dbContext.StaffMembers
-            .FirstOrDefaultAsync(s => s.Email == email, cancellationToken);
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Email.ToLower() == email.ToLower(), cancellationToken);
 
+    // get all staff ordered by most recently created first
     public async Task<IReadOnlyList<StaffMember>> GetAllAsync(CancellationToken cancellationToken = default)
         => await _dbContext.StaffMembers
-            .OrderBy(s => s.FullName)
+            .AsNoTracking()
+            .OrderByDescending(s => s.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
+    // add new staff record and save
     public async Task<StaffMember> CreateAsync(StaffMember staffMember, CancellationToken cancellationToken = default)
     {
         await _dbContext.StaffMembers.AddAsync(staffMember, cancellationToken);
@@ -33,6 +41,7 @@ public sealed class StaffRepository : IStaffRepository
         return staffMember;
     }
 
+    // update existing staff record and save
     public async Task<StaffMember> UpdateAsync(StaffMember staffMember, CancellationToken cancellationToken = default)
     {
         _dbContext.StaffMembers.Update(staffMember);
@@ -40,6 +49,7 @@ public sealed class StaffRepository : IStaffRepository
         return staffMember;
     }
 
+    // delete staff record by id if it exists
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var staffMember = await _dbContext.StaffMembers.FindAsync([id], cancellationToken);
@@ -50,6 +60,8 @@ public sealed class StaffRepository : IStaffRepository
         }
     }
 
+    // check if any staff member already uses this email
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
-        => await _dbContext.StaffMembers.AnyAsync(s => s.Email == email, cancellationToken);
+        => await _dbContext.StaffMembers
+            .AnyAsync(s => s.Email.ToLower() == email.ToLower(), cancellationToken);
 }

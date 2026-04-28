@@ -69,13 +69,14 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        // remove default 5-minute tolerance so tokens expire exactly on time
         ClockSkew = TimeSpan.Zero
     };
 });
 
 builder.Services.AddAuthorization();
 
-// CORS — allow all origins, methods, headers (dev mode)
+// allow all origins in development mode
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -92,6 +93,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// register middleware in correct order
 app.UseErrorHandling();
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
