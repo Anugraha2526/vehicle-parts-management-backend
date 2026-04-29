@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using vehicle_parts_management_backend.Application.DTOs;
-using vehicle_parts_management_backend.Application.Interfaces;
-using vehicle_parts_management_backend.Domain.Entities;
-using vehicle_parts_management_backend.Infrastructure.Data;
+using VehicleParts.Application.DTOs;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Domain.Modules.CustomerCRM.Entities;
+using VehicleParts.Infrastructure.Persistence;
 
-namespace vehicle_parts_management_backend.Application.Services
+namespace VehicleParts.Infrastructure.Services
 {
     public class CustomerService : ICustomerService
     {
@@ -18,7 +19,7 @@ namespace vehicle_parts_management_backend.Application.Services
             _context = context;
         }
 
-        public async Task<int> RegisterCustomerAsync(RegisterCustomerDto dto)
+        public async Task<Guid> RegisterCustomerAsync(RegisterCustomerDto dto)
         {
             var passwordHash = string.IsNullOrEmpty(dto.Password) ? "" : BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
@@ -52,7 +53,7 @@ namespace vehicle_parts_management_backend.Application.Services
             return user.Id;
         }
 
-        public async Task<CustomerProfileDto?> GetCustomerProfileAsync(int id)
+        public async Task<CustomerProfileDto?> GetCustomerProfileAsync(Guid id)
         {
             var user = await _context.Users
                 .Include(u => u.Vehicles)
@@ -68,7 +69,7 @@ namespace vehicle_parts_management_backend.Application.Services
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Address = user.Address,
-                CreatedAt = user.CreatedAt,
+                CreatedAt = user.CreatedAtUtc,
                 Vehicles = user.Vehicles.Select(v => new VehicleDto
                 {
                     Id = v.Id,
@@ -90,7 +91,6 @@ namespace vehicle_parts_management_backend.Application.Services
 
         public async Task<List<CustomerProfileDto>> SearchCustomersAsync(string query)
         {
-            // Use case-insensitive check for Role
             var queryable = _context.Users
                 .Include(u => u.Vehicles)
                 .Where(u => u.Role.ToLower() == "customer");
@@ -126,7 +126,7 @@ namespace vehicle_parts_management_backend.Application.Services
             }).ToList();
         }
 
-        public async Task<bool> UpdateCustomerProfileAsync(int id, UpdateProfileDto dto)
+        public async Task<bool> UpdateCustomerProfileAsync(Guid id, UpdateProfileDto dto)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null || user.Role != "Customer") return false;
@@ -139,7 +139,7 @@ namespace vehicle_parts_management_backend.Application.Services
             return true;
         }
 
-        public async Task<bool> AddVehicleAsync(int customerId, VehicleDto dto)
+        public async Task<bool> AddVehicleAsync(Guid customerId, VehicleDto dto)
         {
             var user = await _context.Users.FindAsync(customerId);
             if (user == null || user.Role.ToLower() != "customer") return false;
@@ -165,12 +165,10 @@ namespace vehicle_parts_management_backend.Application.Services
 
             if (user == null) return null;
 
-            // Verify password using BCrypt
             bool isPasswordCorrect = false;
             try {
                 isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
             } catch {
-                // Handle cases where password might be plain text from seeding
                 isPasswordCorrect = user.PasswordHash == dto.Password;
             }
 
@@ -181,7 +179,7 @@ namespace vehicle_parts_management_backend.Application.Services
                 Id = user.Id,
                 FullName = user.FullName,
                 Role = user.Role,
-                Token = "mock-jwt-token" // In a real app, generate a JWT here
+                Token = "mock-jwt-token"
             };
         }
     }

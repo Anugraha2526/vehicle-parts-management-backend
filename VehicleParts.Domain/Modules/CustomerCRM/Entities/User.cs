@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
+using VehicleParts.Domain.Common;
 
-namespace vehicle_parts_management_backend.Domain.Entities
+namespace VehicleParts.Domain.Modules.CustomerCRM.Entities
 {
-    public class User
+    public class User : BaseEntity
     {
-        public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public string Role { get; set; } = "Customer"; // Admin, Staff, Customer
+        public string Role { get; set; } = "Customer";
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

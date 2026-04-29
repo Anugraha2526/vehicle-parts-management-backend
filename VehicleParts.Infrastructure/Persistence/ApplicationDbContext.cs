@@ -18,8 +18,9 @@ public sealed class ApplicationDbContext : DbContext
     public DbSet<Part> Parts => Set<Part>();
     public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
     public DbSet<Vendor> Vendors => Set<Vendor>();
-    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<User> Users => Set<User>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+    public DbSet<Transaction> Transactions => Set<Transaction>();
 
     public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
     public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
@@ -34,6 +35,17 @@ public sealed class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Feature 6, 8, 10, 12: Customer & Vehicle relationships
+        modelBuilder.Entity<Vehicle>()
+            .HasOne(v => v.User)
+            .WithMany(u => u.Vehicles)
+            .HasForeignKey(v => v.UserId);
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.Transactions)
+            .HasForeignKey(t => t.UserId);
 
         modelBuilder.Entity<PurchaseInvoice>(builder =>
         {

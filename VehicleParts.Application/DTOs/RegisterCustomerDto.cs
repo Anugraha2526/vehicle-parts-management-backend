@@ -1,4 +1,4 @@
-namespace vehicle_parts_management_backend.Application.DTOs
+namespace VehicleParts.Application.DTOs
 {
     public class RegisterCustomerDto
     {
@@ -6,9 +6,8 @@ namespace vehicle_parts_management_backend.Application.DTOs
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty; // Used for self-register
+        public string Password { get; set; } = string.Empty;
 
-        // Initial vehicle details
         public string VehicleNumber { get; set; } = string.Empty;
         public string Make { get; set; } = string.Empty;
         public string Model { get; set; } = string.Empty;

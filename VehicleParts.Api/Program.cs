@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -86,7 +86,7 @@ builder.Services.AddCors(options =>
 });
 
 // Register Application Services
-builder.Services.AddScoped<vehicle_parts_management_backend.Application.Interfaces.ICustomerService, vehicle_parts_management_backend.Application.Services.CustomerService>();
+builder.Services.AddScoped<VehicleParts.Application.Interfaces.ICustomerService, VehicleParts.Infrastructure.Services.CustomerService>();
 
 var app = builder.Build();
 
@@ -107,12 +107,12 @@ app.MapControllers();
 // Seed Sample Data
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
     context.Database.EnsureCreated();
 
     if (!context.Users.Any(u => u.Role == "Customer"))
     {
-        var sampleCustomer = new vehicle_parts_management_backend.Domain.Entities.User
+        var sampleCustomer = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
             FullName = "Aarav Sharma",
             Email = "aarav@example.com",
@@ -124,7 +124,7 @@ using (var scope = app.Services.CreateScope())
         context.Users.Add(sampleCustomer);
         context.SaveChanges();
 
-        context.Vehicles.Add(new vehicle_parts_management_backend.Domain.Entities.Vehicle
+        context.Vehicles.Add(new VehicleParts.Domain.Modules.CustomerCRM.Entities.Vehicle
         {
             UserId = sampleCustomer.Id,
             VehicleNumber = "BA-1-PA-1234",

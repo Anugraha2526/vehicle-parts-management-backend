@@ -1,12 +1,12 @@
 using System;
+using VehicleParts.Domain.Common;
 
-namespace vehicle_parts_management_backend.Domain.Entities
+namespace VehicleParts.Domain.Modules.CustomerCRM.Entities
 {
-    public class Transaction
+    public class Transaction : BaseEntity
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public string Type { get; set; } = string.Empty; // e.g., "Service", "Purchase"
+        public Guid UserId { get; set; }
+        public string Type { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
         public DateTime Date { get; set; } = DateTime.UtcNow;
         public string Description { get; set; } = string.Empty;

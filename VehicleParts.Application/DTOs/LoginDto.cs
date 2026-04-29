@@ -1,4 +1,4 @@
-namespace vehicle_parts_management_backend.Application.DTOs
+namespace VehicleParts.Application.DTOs
 {
     public class LoginDto
     {
@@ -8,9 +8,9 @@ namespace vehicle_parts_management_backend.Application.DTOs
 
     public class LoginResponseDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
-        public string Token { get; set; } = string.Empty; // We can use a mock token for now
+        public string Token { get; set; } = string.Empty;
     }
 }

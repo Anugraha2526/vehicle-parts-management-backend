@@ -1,4 +1,4 @@
-namespace vehicle_parts_management_backend.Application.DTOs
+namespace VehicleParts.Application.DTOs
 {
     public class UpdateProfileDto
     {
