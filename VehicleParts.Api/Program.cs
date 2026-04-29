@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -85,6 +85,9 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
+// Register Application Services
+builder.Services.AddScoped<VehicleParts.Application.Interfaces.ICustomerService, VehicleParts.Infrastructure.Services.CustomerService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -100,5 +103,37 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Seed Sample Data
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
+    context.Database.EnsureCreated();
+
+    if (!context.Users.Any(u => u.Role == "Customer"))
+    {
+        var sampleCustomer = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
+        {
+            FullName = "Aarav Sharma",
+            Email = "aarav@example.com",
+            PhoneNumber = "9841234567",
+            Address = "Kathmandu, Nepal",
+            Role = "Customer",
+            IsActive = true
+        };
+        context.Users.Add(sampleCustomer);
+        context.SaveChanges();
+
+        context.Vehicles.Add(new VehicleParts.Domain.Modules.CustomerCRM.Entities.Vehicle
+        {
+            UserId = sampleCustomer.Id,
+            VehicleNumber = "BA-1-PA-1234",
+            Make = "Toyota",
+            Model = "Corolla",
+            Year = 2022
+        });
+        context.SaveChanges();
+    }
+}
 
 app.Run();

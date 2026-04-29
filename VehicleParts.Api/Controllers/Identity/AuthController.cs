@@ -1,30 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VehicleParts.Application.Modules.Identity.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using VehicleParts.Application.DTOs;
+using VehicleParts.Application.Interfaces;
 
-namespace VehicleParts.Api.Controllers.Identity;
-
-[ApiController]
-[Route("api/[controller]")]
-public sealed class AuthController : ControllerBase
+namespace VehicleParts.Api.Controllers.Identity
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-    }
+        private readonly ICustomerService _customerService;
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(CancellationToken cancellationToken)
-    {
-        var result = await _authService.LoginAsync(cancellationToken);
-        return Ok(result);
-    }
+        public AuthController(ICustomerService customerService)
+        {
+            _customerService = customerService;
+        }
 
-    [HttpPost("register")]
-    public async Task<IActionResult> SelfRegister(CancellationToken cancellationToken)
-    {
-        var result = await _authService.RegisterAsync(cancellationToken);
-        return Ok(result);
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterCustomerDto dto)
+        {
+            try
+            {
+                var userId = await _customerService.RegisterCustomerAsync(dto);
+                return Ok(new { UserId = userId, Message = "Registration successful!" });
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            var response = await _customerService.LoginAsync(dto);
+            if (response == null)
+            {
+                return Unauthorized(new { Message = "Invalid email or password." });
+            }
+            return Ok(response);
+        }
     }
 }
