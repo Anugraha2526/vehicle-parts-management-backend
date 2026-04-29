@@ -6,6 +6,7 @@ public sealed class SalesInvoice : BaseEntity
 {
     public string InvoiceNumber { get; set; } = string.Empty;
     public Guid CustomerId { get; set; }
+    public Modules.CustomerCRM.Entities.Customer? Customer { get; set; }
 
     /// <summary>Staff member who processed this sale.</summary>
     public Guid StaffId { get; set; }

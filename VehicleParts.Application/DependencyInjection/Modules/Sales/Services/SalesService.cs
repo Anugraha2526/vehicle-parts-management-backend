@@ -109,14 +109,23 @@ public sealed class SalesService : ISalesService
     private static string GenerateInvoiceNumber(DateTime soldAt)
         => $"SINV-{soldAt:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
 
+    public async Task<ServiceResult<List<SalesInvoiceResponseDto>>> GetRecentInvoicesAsync(int limit = 10, CancellationToken cancellationToken = default)
+    {
+        var invoices = await _salesRepository.GetRecentInvoicesAsync(limit, cancellationToken);
+        var dtos = invoices.Select(inv => MapToResponseDto(inv)).ToList();
+        return ServiceResult<List<SalesInvoiceResponseDto>>.Ok(dtos, "Recent invoices fetched.");
+    }
+
     private static SalesInvoiceResponseDto MapToResponseDto(SalesInvoice invoice)
-        => new()
+    {
+        return new SalesInvoiceResponseDto
         {
             InvoiceId = invoice.Id,
             InvoiceNumber = invoice.InvoiceNumber,
             CustomerId = invoice.CustomerId,
+            CustomerName = invoice.Customer?.FullName ?? "Unknown",
             StaffId = invoice.StaffId,
-            SoldAtUtc = invoice.SoldAtUtc,
+            SoldAtUtc = invoice.CreatedAtUtc,
             SubTotal = invoice.SubTotal,
             LoyaltyDiscountApplied = invoice.LoyaltyDiscountApplied,
             DiscountAmount = invoice.DiscountAmount,
@@ -130,5 +139,6 @@ public sealed class SalesService : ISalesService
                 SubTotal = i.SubTotal
             }).ToList()
         };
+    }
 }
 
