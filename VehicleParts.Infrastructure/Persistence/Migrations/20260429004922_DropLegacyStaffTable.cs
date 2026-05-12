@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,7 +10,9 @@ namespace VehicleParts.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "Staff");
+            // Use IF EXISTS so this is safe on fresh databases where the legacy
+            // Staff table was never created.
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"Staff\";");
         }
 
         /// <inheritdoc />

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VehicleParts.Application.Common.Interfaces;
 using VehicleParts.Application.Modules.AdminCore.Interfaces;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 using VehicleParts.Application.Modules.Sales.Interfaces;
@@ -9,6 +10,7 @@ using VehicleParts.Infrastructure.Repositories.AdminCore;
 using VehicleParts.Infrastructure.Repositories.Finance;
 using VehicleParts.Infrastructure.Repositories.Sales;
 using VehicleParts.Infrastructure.Security;
+using VehicleParts.Infrastructure.Services;
 
 namespace VehicleParts.Infrastructure.DependencyInjection;
 
@@ -21,6 +23,10 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        // Email (MailKit / SMTP)
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddScoped<IEmailService, MailKitEmailService>();
 
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IStaffRepository, StaffRepository>();
