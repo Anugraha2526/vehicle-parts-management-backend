@@ -68,5 +68,50 @@ public sealed class SalesController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>Gets a list of all strictly unpaid invoices older than specified months.</summary>
+    [HttpGet("invoice/overdue")]
+    public async Task<IActionResult> GetOverdueInvoices(
+        [FromQuery] int months = 1, CancellationToken cancellationToken = default)
+    {
+        var result = await _salesService.GetUnpaidInvoicesAsync(months, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Reminds all overdue customers securely in batch via email service.</summary>
+    [HttpPost("invoice/remind-overdue")]
+    public async Task<IActionResult> RemindAllOverdueInvoices(
+        [FromQuery] int months = 1, CancellationToken cancellationToken = default)
+    {
+        var result = await _salesService.SendDueRemindersAsync(months, null, cancellationToken);
+        if (!result.Success)
+            return BadRequest(result);
+            
+        return Ok(result);
+    }
+
+    /// <summary>Sends a targeted overdue reminder solely to one distinct customer invoice.</summary>
+    [HttpPost("invoice/{id:guid}/remind")]
+    public async Task<IActionResult> RemindSingleOverdueInvoice(
+        Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _salesService.SendDueRemindersAsync(1, id, cancellationToken);
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    /// <summary>Admin action locking the invoice credit permanently as paid.</summary>
+    [HttpPost("invoice/{id:guid}/mark-paid")]
+    public async Task<IActionResult> MarkInvoiceAsPaid(
+        Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _salesService.MarkInvoiceAsPaidAsync(id, cancellationToken);
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }
 

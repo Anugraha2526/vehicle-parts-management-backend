@@ -108,7 +108,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 
     if (!context.Users.Any(u => u.Role == "Customer"))
     {
@@ -133,6 +133,87 @@ using (var scope = app.Services.CreateScope())
             Year = 2022
         });
         context.SaveChanges();
+    }
+
+    // Seed Mock Staff Member matching the exact style pattern
+    if (!context.StaffMembers.Any())
+    {
+        var sampleStaff = new VehicleParts.Domain.Modules.AdminCore.Entities.StaffMember
+        {
+            FullName = "Anugraha",
+            Email = "anugraha@example.com",
+            PasswordHash = "dummy-hash",
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff,
+            IsActive = true
+        };
+        context.StaffMembers.Add(sampleStaff);
+        context.SaveChanges();
+    }
+
+    // Seed Mock Parts matching the exact style pattern
+    if (!context.Parts.Any())
+    {
+        var mockVendor = new VehicleParts.Domain.Modules.AdminCore.Entities.Vendor
+        {
+            VendorName = "Mock Vendor",
+            ContactPerson = "Mock",
+            Email = "mock@mock.com",
+            Phone = "1234",
+            Address = "Mock City"
+        };
+        context.Vendors.Add(mockVendor);
+        context.SaveChanges(); // Need to save to generate Vendor Id
+
+        var sparkPlug = new VehicleParts.Domain.Modules.AdminCore.Entities.Part
+        {
+            PartName = "NGK Spark Plug",
+            PartNumber = "NGK-001",
+            Category = "Engine",
+            VendorId = mockVendor.Id,
+            QuantityInStock = 100,
+            UnitCost = 200,
+            SellingPrice = 350
+        };
+        context.Parts.Add(sparkPlug);
+
+        var brakeDisc = new VehicleParts.Domain.Modules.AdminCore.Entities.Part
+        {
+            PartName = "Bosch Brake Disc",
+            PartNumber = "BSH-BRK",
+            Category = "Brakes",
+            VendorId = mockVendor.Id,
+            QuantityInStock = 50,
+            UnitCost = 800,
+            SellingPrice = 1200
+        };
+        context.Parts.Add(brakeDisc);
+        
+        context.SaveChanges();
+    }
+
+    // Seed Demo Overdue Invoice for Credit Reminders Dashboard
+    if (!context.SalesInvoices.Any(i => i.InvoiceNumber == "SINV-OVERDUE-01"))
+    {
+        var dummyCustomer = context.Users.FirstOrDefault(u => u.Role == "Customer");
+        var dummyStaff = context.StaffMembers.FirstOrDefault();
+
+        if (dummyCustomer != null && dummyStaff != null)
+        {
+            var overdueInvoice = new VehicleParts.Domain.Modules.Sales.Entities.SalesInvoice
+            {
+                InvoiceNumber = "SINV-OVERDUE-01",
+                CustomerId = dummyCustomer.Id,
+                StaffId = dummyStaff.Id,
+                SoldAtUtc = DateTime.UtcNow.AddDays(-40),
+                SubTotal = 6000,
+                LoyaltyDiscountApplied = true,
+                DiscountAmount = 600,
+                TotalAmount = 5400,
+                IsPaid = false
+            };
+            context.SalesInvoices.Add(overdueInvoice);
+            context.SaveChanges();
+        }
     }
 }
 

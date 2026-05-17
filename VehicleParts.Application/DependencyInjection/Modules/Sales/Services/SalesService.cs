@@ -97,7 +97,7 @@ public sealed class SalesService : ISalesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating sales invoice for customer {CustomerId}", request.CustomerId);
-            return ServiceResult<SalesInvoiceResponseDto>.Fail("An unexpected error occurred while creating the invoice.");
+            return ServiceResult<SalesInvoiceResponseDto>.Fail($"Exception: {ex.Message} | Inner: {ex.InnerException?.Message}");
         }
     }
 
@@ -144,6 +144,73 @@ public sealed class SalesService : ISalesService
     }
 
     // ──────────────────────────── helpers ────────────────────────────
+
+    public async Task<ServiceResult<List<SalesInvoiceResponseDto>>> GetUnpaidInvoicesAsync(
+        int olderThanMonths = 1, CancellationToken cancellationToken = default)
+    {
+        var invoices = await _salesRepository.GetUnpaidInvoicesAsync(olderThanMonths, cancellationToken);
+        var dtos     = invoices.Select(MapToResponseDto).ToList();
+        return ServiceResult<List<SalesInvoiceResponseDto>>.Ok(dtos, "Unpaid overdue invoices fetched.");
+    }
+
+    public async Task<ServiceResult> SendDueRemindersAsync(
+        int olderThanMonths = 1, Guid? specificInvoiceId = null, CancellationToken cancellationToken = default)
+    {
+        var invoices = await _salesRepository.GetUnpaidInvoicesAsync(olderThanMonths, cancellationToken);
+        
+        if (specificInvoiceId.HasValue)
+        {
+            invoices = invoices.Where(i => i.Id == specificInvoiceId.Value).ToList();
+        }
+
+        if (!invoices.Any())
+            return ServiceResult.Fail("No overdue invoices found for reminding.");
+
+        int successCount = 0;
+        foreach(var invoice in invoices)
+        {
+            var customer = invoice.Customer;
+            if (customer == null || string.IsNullOrWhiteSpace(customer.Email)) continue;
+
+            var subject = $"Payment Reminder: ChitoSpare Invoice {invoice.InvoiceNumber}";
+            var ageInDays = (DateTime.UtcNow - invoice.SoldAtUtc).Days;
+            
+            // Per user request, plain text email.
+            var textBody = $@"Dear {customer.FullName},
+
+This is a friendly reminder from ChitoSpare regarding your unpaid invoice {invoice.InvoiceNumber}.
+The invoice was issued on {invoice.SoldAtUtc.ToString("dd MMM yyyy")} and is currently {ageInDays} days overdue.
+
+Outstanding Balance: Rs. {invoice.TotalAmount:N2}
+
+Please arrange to settle this balance at your earliest convenience to avoid any service interruptions.
+
+Thank you,
+The ChitoSpare Team";
+
+            try
+            {
+                await _emailService.SendAsync(customer.Email, customer.FullName, subject, textBody, cancellationToken);
+                successCount++;
+                _logger.LogInformation("Sent plain text reminder to {Email} for overdue invoice {InvoiceNumber}", customer.Email, invoice.InvoiceNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send reminder to {Email}", customer.Email);
+            }
+        }
+
+        return ServiceResult.Ok($"Successfully sent {successCount} reminders.");
+    }
+
+    public async Task<ServiceResult> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken = default)
+    {
+        var result = await _salesRepository.MarkInvoiceAsPaidAsync(invoiceId, cancellationToken);
+        if (!result)
+            return ServiceResult.Fail($"Invoice {invoiceId} could not be marked as paid. It may not exist or is already paid.");
+
+        return ServiceResult.Ok("Invoice successfully marked as paid.");
+    }
 
     private static string GenerateInvoiceNumber(DateTime soldAt)
         => $"SINV-{soldAt:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
