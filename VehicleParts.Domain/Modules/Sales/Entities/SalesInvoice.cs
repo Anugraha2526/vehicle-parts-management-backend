@@ -34,6 +34,12 @@ public sealed class SalesInvoice : BaseEntity
 
     public List<SalesInvoiceItem> Items { get; set; } = [];
 
+    /// <summary>Status strictly identifying whether the amount has been settled.</summary>
+    public bool IsPaid { get; set; } = false;
+
+    /// <summary>Timestamp recorded specifically when the customer cleared up the payment.</summary>
+    public DateTime? PaidAtUtc { get; set; }
+
     /// <summary>
     /// Recalculates SubTotal, applies loyalty discount when SubTotal &gt; 5000,
     /// and sets TotalAmount.
@@ -54,5 +60,12 @@ public sealed class SalesInvoice : BaseEntity
         }
 
         TotalAmount = SubTotal - DiscountAmount;
+    }
+
+    /// <summary>Marks the invoice as fully paid.</summary>
+    public void MarkAsPaid()
+    {
+        IsPaid = true;
+        PaidAtUtc = DateTime.UtcNow;
     }
 }

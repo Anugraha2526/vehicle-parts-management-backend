@@ -61,4 +61,25 @@ public sealed class SalesRepository : ISalesRepository
             .Take(limit)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<SalesInvoice>> GetUnpaidInvoicesAsync(int olderThanMonths, CancellationToken cancellationToken)
+    {
+        var thresholdDate = DateTime.UtcNow.AddMonths(-olderThanMonths);
+        return await _db.SalesInvoices
+            .Include(inv => inv.Customer)
+            .Include(inv => inv.Items)
+            .Where(inv => !inv.IsPaid && inv.SoldAtUtc < thresholdDate)
+            .OrderBy(inv => inv.SoldAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken)
+    {
+        var invoice = await _db.SalesInvoices.FindAsync(new object[] { invoiceId }, cancellationToken);
+        if (invoice == null || invoice.IsPaid) return false;
+
+        invoice.MarkAsPaid();
+        await _db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

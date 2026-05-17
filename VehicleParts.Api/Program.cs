@@ -108,7 +108,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 
     if (!context.Users.Any(u => u.Role == "Customer"))
     {
@@ -189,6 +189,31 @@ using (var scope = app.Services.CreateScope())
         context.Parts.Add(brakeDisc);
         
         context.SaveChanges();
+    }
+
+    // Seed Demo Overdue Invoice for Credit Reminders Dashboard
+    if (!context.SalesInvoices.Any(i => i.InvoiceNumber == "SINV-OVERDUE-01"))
+    {
+        var dummyCustomer = context.Users.FirstOrDefault(u => u.Role == "Customer");
+        var dummyStaff = context.StaffMembers.FirstOrDefault();
+
+        if (dummyCustomer != null && dummyStaff != null)
+        {
+            var overdueInvoice = new VehicleParts.Domain.Modules.Sales.Entities.SalesInvoice
+            {
+                InvoiceNumber = "SINV-OVERDUE-01",
+                CustomerId = dummyCustomer.Id,
+                StaffId = dummyStaff.Id,
+                SoldAtUtc = DateTime.UtcNow.AddDays(-40),
+                SubTotal = 6000,
+                LoyaltyDiscountApplied = true,
+                DiscountAmount = 600,
+                TotalAmount = 5400,
+                IsPaid = false
+            };
+            context.SalesInvoices.Add(overdueInvoice);
+            context.SaveChanges();
+        }
     }
 }
 
