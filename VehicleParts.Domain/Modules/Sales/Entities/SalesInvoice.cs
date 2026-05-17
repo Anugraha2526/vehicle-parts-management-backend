@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using VehicleParts.Domain.Common;
 
 namespace VehicleParts.Domain.Modules.Sales.Entities;
@@ -6,10 +7,15 @@ public sealed class SalesInvoice : BaseEntity
 {
     public string InvoiceNumber { get; set; } = string.Empty;
     public Guid CustomerId { get; set; }
-    public Modules.CustomerCRM.Entities.Customer? Customer { get; set; }
+
+    [ForeignKey("CustomerId")]
+    public Modules.CustomerCRM.Entities.User? Customer { get; set; }
 
     /// <summary>Staff member who processed this sale.</summary>
     public Guid StaffId { get; set; }
+
+    [ForeignKey("StaffId")]
+    public Modules.AdminCore.Entities.StaffMember? Staff { get; set; }
 
     public DateTime SoldAtUtc { get; set; } = DateTime.UtcNow;
 
