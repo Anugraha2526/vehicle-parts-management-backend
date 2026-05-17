@@ -49,6 +49,7 @@ public sealed class SalesRepository : ISalesRepository
     {
         return await _db.SalesInvoices
             .Include(inv => inv.Items)
+            .Include(inv => inv.Customer)
             .FirstOrDefaultAsync(inv => inv.Id == invoiceId, cancellationToken);
     }
 
