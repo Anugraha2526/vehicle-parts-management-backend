@@ -4,7 +4,6 @@ using VehicleParts.Domain.Modules.CustomerCRM.Entities;
 using VehicleParts.Domain.Modules.CustomerPortal.Entities;
 using VehicleParts.Domain.Modules.Finance.Entities;
 using VehicleParts.Domain.Modules.Sales.Entities;
-using VehicleParts.Domain.Modules.AdminCore.Entities;
 
 namespace VehicleParts.Infrastructure.Persistence;
 
@@ -104,8 +103,17 @@ public sealed class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Part>(builder =>
         {
-            builder.Property(part => part.UnitPrice)
-                .HasPrecision(18, 2);
+            builder.Property(p => p.PartName).HasMaxLength(200).IsRequired();
+            builder.Property(p => p.PartNumber).HasMaxLength(50).IsRequired();
+            builder.Property(p => p.Category).HasMaxLength(100).IsRequired();
+            builder.Property(p => p.Description).HasMaxLength(500);
+            builder.Property(p => p.UnitCost).HasPrecision(18, 2).IsRequired();
+            builder.Property(p => p.SellingPrice).HasPrecision(18, 2).IsRequired();
+            builder.HasIndex(p => p.PartNumber).IsUnique();
+            builder.HasOne(p => p.Vendor)
+                .WithMany()
+                .HasForeignKey(p => p.VendorId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Vendor>(builder =>

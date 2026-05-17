@@ -43,8 +43,8 @@ public sealed class LowStockService : ILowStockService
             newAlerts.Add(new LowStockNotification
             {
                 PartId = part.Id,
-                PartName = part.Name,
-                CurrentStockQuantity = part.StockQuantity,
+                PartName = part.PartName,
+                CurrentStockQuantity = part.QuantityInStock,
                 Threshold = threshold,
                 IsAcknowledged = false,
                 NotifiedAtUtc = DateTime.UtcNow

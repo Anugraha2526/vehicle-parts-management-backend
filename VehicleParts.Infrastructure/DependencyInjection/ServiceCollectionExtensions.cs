@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IVendorRepository, VendorRepository>();
+        services.AddScoped<IPartsRepository, PartsRepository>();
 
         services.AddScoped<IPurchaseRepository, PurchaseRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();

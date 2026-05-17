@@ -35,7 +35,7 @@ public sealed class SalesRepository : ISalesRepository
         {
             if (partMap.TryGetValue(item.PartId, out var part))
             {
-                part.StockQuantity -= item.Quantity;
+                part.QuantityInStock -= item.Quantity;
                 part.Touch();
             }
         }
