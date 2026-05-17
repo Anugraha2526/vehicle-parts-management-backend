@@ -20,8 +20,8 @@ public sealed class LowStockRepository : ILowStockRepository
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.Parts
-            .Where(part => part.StockQuantity < threshold)
-            .OrderBy(part => part.StockQuantity)
+            .Where(part => part.QuantityInStock < threshold)
+            .OrderBy(part => part.QuantityInStock)
             .ToListAsync(cancellationToken);
     }
 
