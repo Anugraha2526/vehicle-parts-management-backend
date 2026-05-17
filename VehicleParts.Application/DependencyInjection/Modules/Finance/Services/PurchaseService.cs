@@ -55,7 +55,7 @@ public sealed class PurchaseService : IPurchaseService
         foreach (var item in request.Items)
         {
             var part = partMap[item.PartId];
-            part.StockQuantity += item.Quantity;
+            part.QuantityInStock += item.Quantity;
             part.Touch();
 
             invoice.Items.Add(new PurchaseInvoiceItem

@@ -50,9 +50,9 @@ public sealed class SalesService : ISalesService
             foreach (var item in request.Items)
             {
                 var part = partMap[item.PartId];
-                if (part.StockQuantity < item.Quantity)
+                if (part.QuantityInStock < item.Quantity)
                     return ServiceResult<SalesInvoiceResponseDto>.Fail(
-                        $"Insufficient stock for '{part.Name}'. Available: {part.StockQuantity}, Requested: {item.Quantity}.");
+                        $"Insufficient stock for '{part.PartName}'. Available: {part.QuantityInStock}, Requested: {item.Quantity}.");
             }
 
             // --- Build invoice ---
@@ -71,10 +71,10 @@ public sealed class SalesService : ISalesService
                 invoice.Items.Add(new SalesInvoiceItem
                 {
                     SalesInvoiceId = invoice.Id,
-                    PartId         = item.PartId,
-                    PartName       = part.Name,
-                    Quantity       = item.Quantity,
-                    UnitPrice      = part.UnitPrice
+                    PartId = item.PartId,
+                    PartName = part.PartName,
+                    Quantity = item.Quantity,
+                    UnitPrice = part.SellingPrice
                 });
             }
 
