@@ -134,6 +134,62 @@ using (var scope = app.Services.CreateScope())
         });
         context.SaveChanges();
     }
+
+    // Seed Mock Staff Member matching the exact style pattern
+    if (!context.StaffMembers.Any())
+    {
+        var sampleStaff = new VehicleParts.Domain.Modules.AdminCore.Entities.StaffMember
+        {
+            FullName = "Anugraha",
+            Email = "anugraha@example.com",
+            PasswordHash = "dummy-hash",
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff,
+            IsActive = true
+        };
+        context.StaffMembers.Add(sampleStaff);
+        context.SaveChanges();
+    }
+
+    // Seed Mock Parts matching the exact style pattern
+    if (!context.Parts.Any())
+    {
+        var mockVendor = new VehicleParts.Domain.Modules.AdminCore.Entities.Vendor
+        {
+            VendorName = "Mock Vendor",
+            ContactPerson = "Mock",
+            Email = "mock@mock.com",
+            Phone = "1234",
+            Address = "Mock City"
+        };
+        context.Vendors.Add(mockVendor);
+        context.SaveChanges(); // Need to save to generate Vendor Id
+
+        var sparkPlug = new VehicleParts.Domain.Modules.AdminCore.Entities.Part
+        {
+            PartName = "NGK Spark Plug",
+            PartNumber = "NGK-001",
+            Category = "Engine",
+            VendorId = mockVendor.Id,
+            QuantityInStock = 100,
+            UnitCost = 200,
+            SellingPrice = 350
+        };
+        context.Parts.Add(sparkPlug);
+
+        var brakeDisc = new VehicleParts.Domain.Modules.AdminCore.Entities.Part
+        {
+            PartName = "Bosch Brake Disc",
+            PartNumber = "BSH-BRK",
+            Category = "Brakes",
+            VendorId = mockVendor.Id,
+            QuantityInStock = 50,
+            UnitCost = 800,
+            SellingPrice = 1200
+        };
+        context.Parts.Add(brakeDisc);
+        
+        context.SaveChanges();
+    }
 }
 
 app.Run();

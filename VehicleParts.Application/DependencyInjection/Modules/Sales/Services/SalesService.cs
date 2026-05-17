@@ -97,7 +97,7 @@ public sealed class SalesService : ISalesService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating sales invoice for customer {CustomerId}", request.CustomerId);
-            return ServiceResult<SalesInvoiceResponseDto>.Fail("An unexpected error occurred while creating the invoice.");
+            return ServiceResult<SalesInvoiceResponseDto>.Fail($"Exception: {ex.Message} | Inner: {ex.InnerException?.Message}");
         }
     }
 
