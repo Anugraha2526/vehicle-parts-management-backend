@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VehicleParts.Application.DTOs;
 using VehicleParts.Application.Interfaces;
+using VehicleParts.Domain.Modules.AdminCore.Enums;
 using VehicleParts.Domain.Modules.CustomerCRM.Entities;
 using VehicleParts.Infrastructure.Persistence;
 
@@ -64,7 +65,7 @@ namespace VehicleParts.Infrastructure.Services
                 PhoneNumber = dto.PhoneNumber,
                 Address = dto.Address,
                 PasswordHash = passwordHash,
-                Role = "Customer"
+                Role = UserRole.Customer
             };
 
             _context.Users.Add(user);
@@ -92,7 +93,7 @@ namespace VehicleParts.Infrastructure.Services
             var user = await _context.Users
                 .Include(u => u.Vehicles)
                 .Include(u => u.Transactions)
-                .FirstOrDefaultAsync(u => u.Id == id && u.Role == "Customer");
+                .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.Customer);
 
             if (user == null) return null;
 
@@ -101,8 +102,8 @@ namespace VehicleParts.Infrastructure.Services
                 Id = user.Id,
                 FullName = user.FullName,
                 Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                Address = user.Address ?? string.Empty,
                 CreatedAt = user.CreatedAtUtc,
                 Vehicles = user.Vehicles.Select(v => new VehicleDto
                 {
@@ -127,14 +128,14 @@ namespace VehicleParts.Infrastructure.Services
         {
             var queryable = _context.Users
                 .Include(u => u.Vehicles)
-                .Where(u => u.Role.ToLower() == "customer");
+                .Where(u => u.Role == UserRole.Customer);
 
             if (!string.IsNullOrWhiteSpace(query))
             {
                 var lowerQuery = query.ToLower();
                 queryable = queryable.Where(u => 
                     u.FullName.ToLower().Contains(lowerQuery) || 
-                    u.PhoneNumber.Contains(query) || 
+                    (u.PhoneNumber != null && u.PhoneNumber.Contains(query)) ||
                     u.Id.ToString() == query || 
                     u.Vehicles.Any(v => v.VehicleNumber.ToLower().Contains(lowerQuery))
                 );
@@ -147,8 +148,8 @@ namespace VehicleParts.Infrastructure.Services
                 Id = user.Id,
                 FullName = user.FullName,
                 Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                Address = user.Address ?? string.Empty,
                 Vehicles = user.Vehicles.Select(v => new VehicleDto
                 {
                     Id = v.Id,
@@ -163,7 +164,7 @@ namespace VehicleParts.Infrastructure.Services
         public async Task<bool> UpdateCustomerProfileAsync(Guid id, UpdateProfileDto dto)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null || user.Role != "Customer") return false;
+            if (user == null || user.Role != UserRole.Customer) return false;
 
             user.FullName = dto.FullName;
             user.PhoneNumber = dto.PhoneNumber;
@@ -176,7 +177,7 @@ namespace VehicleParts.Infrastructure.Services
         public async Task<bool> AddVehicleAsync(Guid customerId, VehicleDto dto)
         {
             var user = await _context.Users.FindAsync(customerId);
-            if (user == null || user.Role.ToLower() != "customer") return false;
+            if (user == null || user.Role != UserRole.Customer) return false;
 
             var vehicle = new Vehicle
             {
@@ -275,6 +276,10 @@ namespace VehicleParts.Infrastructure.Services
                 new Claim(ClaimTypes.Name, fullName),
                 new Claim(ClaimTypes.Role, role),
                 new Claim("role", role)
+                Id = user.Id,
+                FullName = user.FullName,
+                Role = user.Role.ToString(),
+                Token = "mock-jwt-token"
             };
 
             var signingCredentials = new SigningCredentials(

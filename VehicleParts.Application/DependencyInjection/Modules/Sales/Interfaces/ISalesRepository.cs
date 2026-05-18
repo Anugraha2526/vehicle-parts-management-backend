@@ -16,4 +16,10 @@ public interface ISalesRepository
 
     /// <summary>Returns recent sales invoices.</summary>
     Task<List<SalesInvoice>> GetRecentInvoicesAsync(int limit, CancellationToken cancellationToken);
+
+    /// <summary>Fetches unpaid invoices strictly older than a specific month threshold.</summary>
+    Task<List<SalesInvoice>> GetUnpaidInvoicesAsync(int olderThanMonths, CancellationToken cancellationToken);
+
+    /// <summary>Marks an invoice safely as paid and commits to EF Tracking.</summary>
+    Task<bool> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken);
 }

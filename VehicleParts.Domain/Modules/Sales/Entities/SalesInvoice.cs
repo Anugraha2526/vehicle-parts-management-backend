@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using VehicleParts.Domain.Common;
 
 namespace VehicleParts.Domain.Modules.Sales.Entities;
@@ -6,10 +7,15 @@ public sealed class SalesInvoice : BaseEntity
 {
     public string InvoiceNumber { get; set; } = string.Empty;
     public Guid CustomerId { get; set; }
-    public Modules.CustomerCRM.Entities.Customer? Customer { get; set; }
+
+    [ForeignKey("CustomerId")]
+    public Modules.CustomerCRM.Entities.User? Customer { get; set; }
 
     /// <summary>Staff member who processed this sale.</summary>
     public Guid StaffId { get; set; }
+
+    [ForeignKey("StaffId")]
+    public Modules.CustomerCRM.Entities.User? Staff { get; set; }
 
     public DateTime SoldAtUtc { get; set; } = DateTime.UtcNow;
 
@@ -27,6 +33,12 @@ public sealed class SalesInvoice : BaseEntity
     public decimal TotalAmount { get; set; }
 
     public List<SalesInvoiceItem> Items { get; set; } = [];
+
+    /// <summary>Status strictly identifying whether the amount has been settled.</summary>
+    public bool IsPaid { get; set; } = false;
+
+    /// <summary>Timestamp recorded specifically when the customer cleared up the payment.</summary>
+    public DateTime? PaidAtUtc { get; set; }
 
     /// <summary>
     /// Recalculates SubTotal, applies loyalty discount when SubTotal &gt; 5000,
@@ -48,5 +60,12 @@ public sealed class SalesInvoice : BaseEntity
         }
 
         TotalAmount = SubTotal - DiscountAmount;
+    }
+
+    /// <summary>Marks the invoice as fully paid.</summary>
+    public void MarkAsPaid()
+    {
+        IsPaid = true;
+        PaidAtUtc = DateTime.UtcNow;
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Application.Modules.AdminCore.Interfaces;
-using VehicleParts.Domain.Modules.AdminCore.Entities;
+using VehicleParts.Domain.Modules.AdminCore.Enums;
+using VehicleParts.Domain.Modules.CustomerCRM.Entities;
 using VehicleParts.Infrastructure.Persistence;
 
 namespace VehicleParts.Infrastructure.Repositories.AdminCore;
@@ -15,53 +16,56 @@ public sealed class StaffRepository : IStaffRepository
     }
 
     // find one staff member by id without tracking
-    public async Task<StaffMember?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        => await _dbContext.StaffMembers
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await _dbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+            .Where(u => u.Role == UserRole.Admin || u.Role == UserRole.Staff)
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 
     // find one staff member by email, case-insensitive
-    public async Task<StaffMember?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
-        => await _dbContext.StaffMembers
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        => await _dbContext.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Email.ToLower() == email.ToLower(), cancellationToken);
+            .Where(u => u.Role == UserRole.Admin || u.Role == UserRole.Staff)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
 
     // get all staff ordered by most recently created first
-    public async Task<IReadOnlyList<StaffMember>> GetAllAsync(CancellationToken cancellationToken = default)
-        => await _dbContext.StaffMembers
+    public async Task<IReadOnlyList<User>> GetAllAsync(CancellationToken cancellationToken = default)
+        => await _dbContext.Users
             .AsNoTracking()
+            .Where(u => u.Role == UserRole.Admin || u.Role == UserRole.Staff)
             .OrderByDescending(s => s.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
     // add new staff record and save
-    public async Task<StaffMember> CreateAsync(StaffMember staffMember, CancellationToken cancellationToken = default)
+    public async Task<User> CreateAsync(User staffMember, CancellationToken cancellationToken = default)
     {
-        await _dbContext.StaffMembers.AddAsync(staffMember, cancellationToken);
+        await _dbContext.Users.AddAsync(staffMember, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return staffMember;
     }
 
     // update existing staff record and save
-    public async Task<StaffMember> UpdateAsync(StaffMember staffMember, CancellationToken cancellationToken = default)
+    public async Task<User> UpdateAsync(User staffMember, CancellationToken cancellationToken = default)
     {
-        _dbContext.StaffMembers.Update(staffMember);
+        _dbContext.Users.Update(staffMember);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return staffMember;
     }
 
-    // delete staff record by id if it exists
+    // delete staff record by id, guard against accidentally deleting a customer
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var staffMember = await _dbContext.StaffMembers.FindAsync([id], cancellationToken);
-        if (staffMember is not null)
+        var user = await _dbContext.Users.FindAsync([id], cancellationToken);
+        if (user is not null && (user.Role == UserRole.Admin || user.Role == UserRole.Staff))
         {
-            _dbContext.StaffMembers.Remove(staffMember);
+            _dbContext.Users.Remove(user);
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 
-    // check if any staff member already uses this email
+    // check if any user already uses this email
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
-        => await _dbContext.StaffMembers
-            .AnyAsync(s => s.Email.ToLower() == email.ToLower(), cancellationToken);
+        => await _dbContext.Users
+            .AnyAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
 }

@@ -35,7 +35,7 @@ public sealed class SalesRepository : ISalesRepository
         {
             if (partMap.TryGetValue(item.PartId, out var part))
             {
-                part.StockQuantity -= item.Quantity;
+                part.QuantityInStock -= item.Quantity;
                 part.Touch();
             }
         }
@@ -49,6 +49,7 @@ public sealed class SalesRepository : ISalesRepository
     {
         return await _db.SalesInvoices
             .Include(inv => inv.Items)
+            .Include(inv => inv.Customer)
             .FirstOrDefaultAsync(inv => inv.Id == invoiceId, cancellationToken);
     }
 
@@ -59,5 +60,26 @@ public sealed class SalesRepository : ISalesRepository
             .OrderByDescending(inv => inv.CreatedAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<SalesInvoice>> GetUnpaidInvoicesAsync(int olderThanMonths, CancellationToken cancellationToken)
+    {
+        var thresholdDate = DateTime.UtcNow.AddMonths(-olderThanMonths);
+        return await _db.SalesInvoices
+            .Include(inv => inv.Customer)
+            .Include(inv => inv.Items)
+            .Where(inv => !inv.IsPaid && inv.SoldAtUtc < thresholdDate)
+            .OrderBy(inv => inv.SoldAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken)
+    {
+        var invoice = await _db.SalesInvoices.FindAsync(new object[] { invoiceId }, cancellationToken);
+        if (invoice == null || invoice.IsPaid) return false;
+
+        invoice.MarkAsPaid();
+        await _db.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
