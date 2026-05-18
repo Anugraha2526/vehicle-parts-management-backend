@@ -229,6 +229,7 @@ The ChitoSpare Team";
             LoyaltyDiscountApplied = invoice.LoyaltyDiscountApplied,
             DiscountAmount         = invoice.DiscountAmount,
             TotalAmount            = invoice.TotalAmount,
+            IsPaid                 = invoice.IsPaid,
             Items = invoice.Items.Select(i => new SalesInvoiceItemResponseDto
             {
                 PartId    = i.PartId,
