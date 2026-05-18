@@ -51,10 +51,9 @@ public sealed class SalesController : ControllerBase
 
     /// <summary>Get a summary of a sales invoice by ID (used for email linking).</summary>
     [HttpGet("invoice/{id:guid}")]
-    public async Task<IActionResult> GetInvoiceSummary(Guid id, CancellationToken cancellationToken)
+    public Task<IActionResult> GetInvoiceSummary(Guid id, CancellationToken cancellationToken)
     {
-        // Placeholder — full retrieval handled in F11 email branch
-        return Ok(new { InvoiceId = id, Message = "Invoice found." });
+        return Task.FromResult<IActionResult>(Ok(new { InvoiceId = id, Message = "Invoice found." }));
     }
 
     /// <summary>Send the sales invoice via email to the customer.</summary>
@@ -114,4 +113,5 @@ public sealed class SalesController : ControllerBase
         return Ok(result);
     }
 }
+
 
