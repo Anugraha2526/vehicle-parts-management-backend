@@ -9,7 +9,7 @@ namespace VehicleParts.Api.Controllers.AdminCore;
 // REST controller for parts inventory management — Admin only
 [ApiController]
 [Route("api/[controller]")]
-// [Authorize(Roles = "Admin")] // temporarily disabled for testing
+[Authorize(Roles = "Admin")]
 public sealed class PartsController : ControllerBase
 {
     private readonly IPartsService _partsService;
@@ -109,7 +109,10 @@ public sealed class PartsController : ControllerBase
         {
             var result = await _partsService.UpdatePartAsync(id, dto, cancellationToken);
             if (result is null)
+            {
+                _logger.LogWarning("part {Id} not found for update", id);
                 return NotFound($"Part with id '{id}' was not found.");
+            }
 
             return Ok(result);
         }
