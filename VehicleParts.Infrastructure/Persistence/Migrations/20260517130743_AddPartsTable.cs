@@ -76,6 +76,54 @@ namespace VehicleParts.Infrastructure.Persistence.Migrations
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
 
+            // Backfill legacy rows so the new unique/foreign-key constraints can be created safely.
+            migrationBuilder.Sql(
+                """
+                INSERT INTO "Vendors" ("Id", "VendorName", "ContactPerson", "Phone", "Email", "Address", "Notes", "CreatedAtUtc", "UpdatedAtUtc")
+                SELECT '00000000-0000-0000-0000-000000000001', 'Legacy Vendor', 'System', '0000000000', 'legacy-vendor@local.invalid', 'Migrated seed vendor', 'Auto-created during AddPartsTable migration', NOW(), NOW()
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM "Vendors" WHERE "Id" = '00000000-0000-0000-0000-000000000001'
+                );
+                """);
+
+            migrationBuilder.Sql(
+                """
+                UPDATE "Parts"
+                SET
+                    "VendorId" = CASE
+                        WHEN "VendorId" = '00000000-0000-0000-0000-000000000000' THEN '00000000-0000-0000-0000-000000000001'
+                        ELSE "VendorId"
+                    END,
+                    "PartName" = CASE
+                        WHEN COALESCE(BTRIM("PartName"), '') = '' THEN 'Legacy Part ' || SUBSTRING("Id"::text, 1, 8)
+                        ELSE "PartName"
+                    END,
+                    "PartNumber" = CASE
+                        WHEN COALESCE(BTRIM("PartNumber"), '') = '' THEN 'LEG-' || SUBSTRING("Id"::text, 1, 8)
+                        ELSE "PartNumber"
+                    END,
+                    "Category" = CASE
+                        WHEN COALESCE(BTRIM("Category"), '') = '' THEN 'General'
+                        ELSE "Category"
+                    END;
+                """);
+
+            migrationBuilder.Sql(
+                """
+                WITH numbered AS (
+                    SELECT
+                        "Id",
+                        "PartNumber",
+                        ROW_NUMBER() OVER (PARTITION BY "PartNumber" ORDER BY "Id") AS rn
+                    FROM "Parts"
+                )
+                UPDATE "Parts" p
+                SET "PartNumber" = LEFT(p."PartNumber", 40) || '-' || numbered.rn::text
+                FROM numbered
+                WHERE p."Id" = numbered."Id"
+                  AND numbered.rn > 1;
+                """);
+
             migrationBuilder.CreateTable(
                 name: "Customer",
                 columns: table => new
@@ -91,6 +139,23 @@ namespace VehicleParts.Infrastructure.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_Customer", x => x.Id);
                 });
+
+            // Backfill customer rows referenced by existing sales invoices before FK creation.
+            migrationBuilder.Sql(
+                """
+                INSERT INTO "Customer" ("Id", "FullName", "Phone", "Email", "CreatedAtUtc", "UpdatedAtUtc")
+                SELECT DISTINCT
+                    s."CustomerId",
+                    COALESCE(NULLIF(u."FullName", ''), 'Legacy Customer ' || SUBSTRING(s."CustomerId"::text, 1, 8)),
+                    COALESCE(NULLIF(u."PhoneNumber", ''), '0000000000'),
+                    u."Email",
+                    NOW(),
+                    NOW()
+                FROM "SalesInvoices" s
+                LEFT JOIN "Customer" c ON c."Id" = s."CustomerId"
+                LEFT JOIN "Users" u ON u."Id" = s."CustomerId"
+                WHERE c."Id" IS NULL;
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SalesInvoices_CustomerId",
