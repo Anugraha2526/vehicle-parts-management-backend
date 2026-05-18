@@ -12,5 +12,6 @@ public sealed class SalesInvoiceResponseDto
     public bool LoyaltyDiscountApplied { get; init; }
     public decimal DiscountAmount { get; init; }
     public decimal TotalAmount { get; init; }
+    public bool IsPaid { get; init; }
     public List<SalesInvoiceItemResponseDto> Items { get; init; } = [];
 }
