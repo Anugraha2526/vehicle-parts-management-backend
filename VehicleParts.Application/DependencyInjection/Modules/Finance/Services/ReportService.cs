@@ -1,5 +1,6 @@
-﻿using VehicleParts.Application.Common.Models;
+using VehicleParts.Application.Common.Models;
 using VehicleParts.Application.Modules.Finance.DTOs;
+using VehicleParts.Application.DTOs;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Application.Modules.Finance.Services;
@@ -31,5 +32,10 @@ public sealed class ReportService : IReportService
         {
             return ServiceResult<FinancialReportDto>.Fail(ex.Message);
         }
+    }
+
+    public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        return await _reportRepository.GetDashboardSummaryAsync(cancellationToken);
     }
 }

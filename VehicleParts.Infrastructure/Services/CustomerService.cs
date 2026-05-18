@@ -1,7 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using VehicleParts.Application.DTOs;
 using VehicleParts.Application.Interfaces;
@@ -14,14 +19,43 @@ namespace VehicleParts.Infrastructure.Services
     public class CustomerService : ICustomerService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public CustomerService(ApplicationDbContext context)
+        public CustomerService(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<Guid> RegisterCustomerAsync(RegisterCustomerDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.Email))
+            {
+                throw new ArgumentException("Email is required.");
+            }
+
+            var emailLower = dto.Email.Trim().ToLower();
+
+            // Check email uniqueness across Users (Customers) and StaffMembers
+            var emailExistsInUsers = await _context.Users.AnyAsync(u => u.Email.ToLower() == emailLower);
+            var emailExistsInStaff = await _context.StaffMembers.AnyAsync(s => s.Email.ToLower() == emailLower);
+
+            if (emailExistsInUsers || emailExistsInStaff)
+            {
+                throw new ArgumentException($"Email '{dto.Email}' is already registered.");
+            }
+
+            // Check phone number uniqueness across Customers (Users)
+            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
+            {
+                var phoneTrim = dto.PhoneNumber.Trim();
+                var phoneExists = await _context.Users.AnyAsync(u => u.PhoneNumber == phoneTrim);
+                if (phoneExists)
+                {
+                    throw new ArgumentException($"Phone number '{dto.PhoneNumber}' is already in use.");
+                }
+            }
+
             var passwordHash = string.IsNullOrEmpty(dto.Password) ? "" : BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var user = new User
@@ -161,27 +195,110 @@ namespace VehicleParts.Infrastructure.Services
 
         public async Task<LoginResponseDto?> LoginAsync(LoginDto dto)
         {
+            var emailLower = dto.Email.Trim().ToLower();
+
+            // 1. Try to find in Users (Customers)
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == dto.Email.ToLower());
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
 
-            if (user == null) return null;
+            if (user != null)
+            {
+                bool isPasswordCorrect = false;
+                try {
+                    isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+                } catch {
+                    isPasswordCorrect = user.PasswordHash == dto.Password;
+                }
 
-            bool isPasswordCorrect = false;
-            try {
-                isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-            } catch {
-                isPasswordCorrect = user.PasswordHash == dto.Password;
+                if (!isPasswordCorrect) return null;
+
+                var token = GenerateJwtToken(user.Id, user.Email, user.FullName, user.Role);
+
+                return new LoginResponseDto
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Role = user.Role,
+                    Token = token
+                };
             }
 
-            if (!isPasswordCorrect) return null;
+            // 2. Try to find in StaffMembers (Admins / Staff)
+            var staff = await _context.StaffMembers
+                .FirstOrDefaultAsync(s => s.Email.ToLower() == emailLower);
 
-            return new LoginResponseDto
+            if (staff != null)
             {
+                bool isPasswordCorrect = false;
+                try {
+                    isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, staff.PasswordHash);
+                } catch {
+                    isPasswordCorrect = staff.PasswordHash == dto.Password;
+                }
+
+                if (!isPasswordCorrect) return null;
+
+                var roleStr = staff.Role.ToString(); // "Admin" or "Staff"
+                var token = GenerateJwtToken(staff.Id, staff.Email, staff.FullName, roleStr);
+
+                return new LoginResponseDto
+                {
+                    Id = staff.Id,
+                    FullName = staff.FullName,
+                    Role = roleStr,
+                    Token = token
+                };
+            }
+
+            return null;
+        }
+
+        private string GenerateJwtToken(Guid userId, string email, string fullName, string role)
+        {
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+            var keyStr = jwtSettings["Key"] ?? "CHANGE-THIS-TO-A-LONG-RANDOM-SECRET-KEY";
+            var keyBytes = Encoding.UTF8.GetBytes(keyStr);
+            var issuer = jwtSettings["Issuer"] ?? "chitospare";
+            var audience = jwtSettings["Audience"] ?? "chitospare-users";
+
+            var expiryInDays = 7;
+            if (int.TryParse(jwtSettings["ExpiryInDays"], out var parsedDays))
+            {
+                expiryInDays = parsedDays;
+            }
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, email),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Name, fullName),
+                new Claim(ClaimTypes.Role, role),
+                new Claim("role", role)
                 Id = user.Id,
                 FullName = user.FullName,
                 Role = user.Role.ToString(),
                 Token = "mock-jwt-token"
             };
+
+            var signingCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(keyBytes),
+                SecurityAlgorithms.HmacSha256Signature
+            );
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddDays(expiryInDays),
+                Issuer = issuer,
+                Audience = audience,
+                SigningCredentials = signingCredentials
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(securityToken);
         }
     }
 }

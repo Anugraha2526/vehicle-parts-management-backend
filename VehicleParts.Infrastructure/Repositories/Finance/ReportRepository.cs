@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using VehicleParts.Application.DTOs;
 using VehicleParts.Application.Modules.Finance.DTOs;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 using VehicleParts.Infrastructure.Persistence;
@@ -46,6 +47,24 @@ public sealed class ReportRepository : IReportRepository
             SalesInvoiceCount = salesInvoiceCount,
             TotalSalesAmount = totalSalesAmount,
             NetAmount = totalSalesAmount - totalPurchaseAmount
+        };
+    }
+
+    public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        var totalCustomers = await _dbContext.Users.CountAsync(u => u.Role == "Customer", cancellationToken);
+        var totalVehicles = await _dbContext.Vehicles.CountAsync(cancellationToken);
+        var totalTransactions = await _dbContext.Transactions.CountAsync(cancellationToken);
+        
+        var today = DateTime.UtcNow.Date;
+        var registeredToday = await _dbContext.Users.CountAsync(u => u.Role == "Customer" && u.CreatedAtUtc >= today, cancellationToken);
+
+        return new DashboardSummaryDto
+        {
+            TotalCustomers = totalCustomers,
+            TotalVehicles = totalVehicles,
+            TotalTransactions = totalTransactions,
+            RegisteredToday = registeredToday
         };
     }
 
