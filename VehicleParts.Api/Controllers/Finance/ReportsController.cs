@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
@@ -28,5 +28,10 @@ public sealed class ReportsController : ControllerBase
         return Ok(result);
     }
 
-    // Customer reporting belongs to Member 5 (Customer Portal scope).
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetDashboardSummary(CancellationToken cancellationToken)
+    {
+        var result = await _reportService.GetDashboardSummaryAsync(cancellationToken);
+        return Ok(result);
+    }
 }
