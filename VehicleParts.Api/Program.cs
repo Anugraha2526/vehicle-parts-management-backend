@@ -10,6 +10,7 @@ using VehicleParts.Infrastructure.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -136,14 +137,14 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 
-    // seed a default staff member into Users if none exists yet
+    // seed a default staff member if none exists yet
     if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff || u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin))
     {
         var sampleStaff = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
-            FullName = "Anugraha",
+            FullName = "Anugraha Staff",
             Email = "anugraha@example.com",
-            PasswordHash = "dummy-hash",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Staff@1234"),
             Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff,
             IsActive = true
         };
