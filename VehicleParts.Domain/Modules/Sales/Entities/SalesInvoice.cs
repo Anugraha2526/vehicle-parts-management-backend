@@ -15,7 +15,7 @@ public sealed class SalesInvoice : BaseEntity
     public Guid StaffId { get; set; }
 
     [ForeignKey("StaffId")]
-    public Modules.AdminCore.Entities.StaffMember? Staff { get; set; }
+    public Modules.CustomerCRM.Entities.User? Staff { get; set; }
 
     public DateTime SoldAtUtc { get; set; } = DateTime.UtcNow;
 

@@ -111,7 +111,7 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
     context.Database.Migrate();
 
-    if (!context.Users.Any(u => u.Role == "Customer"))
+    if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer))
     {
         var sampleCustomer = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
@@ -119,7 +119,7 @@ using (var scope = app.Services.CreateScope())
             Email = "aarav@example.com",
             PhoneNumber = "9841234567",
             Address = "Kathmandu, Nepal",
-            Role = "Customer",
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer,
             IsActive = true
         };
         context.Users.Add(sampleCustomer);
@@ -136,10 +136,10 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 
-    // Seed Mock Staff Member matching the exact style pattern
-    if (!context.StaffMembers.Any())
+    // seed a default staff member into Users if none exists yet
+    if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff || u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin))
     {
-        var sampleStaff = new VehicleParts.Domain.Modules.AdminCore.Entities.StaffMember
+        var sampleStaff = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
             FullName = "Anugraha",
             Email = "anugraha@example.com",
@@ -147,7 +147,7 @@ using (var scope = app.Services.CreateScope())
             Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff,
             IsActive = true
         };
-        context.StaffMembers.Add(sampleStaff);
+        context.Users.Add(sampleStaff);
         context.SaveChanges();
     }
 
@@ -195,8 +195,8 @@ using (var scope = app.Services.CreateScope())
     // Seed Demo Overdue Invoice for Credit Reminders Dashboard
     if (!context.SalesInvoices.Any(i => i.InvoiceNumber == "SINV-OVERDUE-01"))
     {
-        var dummyCustomer = context.Users.FirstOrDefault(u => u.Role == "Customer");
-        var dummyStaff = context.StaffMembers.FirstOrDefault();
+        var dummyCustomer = context.Users.FirstOrDefault(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer);
+        var dummyStaff = context.Users.FirstOrDefault(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff || u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin);
 
         if (dummyCustomer != null && dummyStaff != null)
         {

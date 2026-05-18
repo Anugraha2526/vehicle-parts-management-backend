@@ -15,7 +15,6 @@ public sealed class ApplicationDbContext : DbContext
     }
 
     public DbSet<Part> Parts => Set<Part>();
-    public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
     public DbSet<Vendor> Vendors => Set<Vendor>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
