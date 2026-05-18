@@ -22,7 +22,7 @@ public sealed class CreatePartDto
 
     // becomes the initial QuantityInStock value on the new part record
     [Required]
-    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+    [Range(0, int.MaxValue, ErrorMessage = "Initial stock must be 0 or more.")]
     public int QuantityPurchased { get; set; }
 
     [Required]
