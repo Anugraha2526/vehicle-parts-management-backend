@@ -16,8 +16,7 @@ public sealed class UpdatePartDto
 
     public Guid? VendorId { get; set; }
 
-    // added to existing QuantityInStock, not a direct stock override
-    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+    // positive adds stock, negative removes; zero is rejected in the service
     public int? QuantityPurchased { get; set; }
 
     [Range(0.01, double.MaxValue, ErrorMessage = "Unit cost must be greater than 0.")]

@@ -99,9 +99,15 @@ public sealed class PartsService : IPartsService
         if (dto.SellingPrice.HasValue) part.SellingPrice = dto.SellingPrice.Value;
         if (dto.Description is not null) part.Description = dto.Description;
 
-        // add purchased quantity to existing stock
         if (dto.QuantityPurchased.HasValue)
-            part.QuantityInStock += dto.QuantityPurchased.Value;
+        {
+            if (dto.QuantityPurchased.Value == 0)
+                throw new ArgumentException("Quantity adjustment cannot be zero.");
+            var newStock = part.QuantityInStock + dto.QuantityPurchased.Value;
+            if (newStock < 0)
+                throw new ArgumentException($"Cannot remove {Math.Abs(dto.QuantityPurchased.Value)} units — only {part.QuantityInStock} in stock.");
+            part.QuantityInStock = newStock;
+        }
 
         part.Touch();
 
