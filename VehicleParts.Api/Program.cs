@@ -112,16 +112,18 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
     context.Database.Migrate();
 
-    if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer))
+    var sampleCustomer = context.Users.FirstOrDefault(u => u.Email == "aarav@example.com");
+    if (sampleCustomer == null)
     {
-        var sampleCustomer = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
+        sampleCustomer = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
             FullName = "Aarav Sharma",
             Email = "aarav@example.com",
             PhoneNumber = "9841234567",
             Address = "Kathmandu, Nepal",
             Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer,
-            IsActive = true
+            IsActive = true,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Customer@1234")
         };
         context.Users.Add(sampleCustomer);
         context.SaveChanges();
@@ -134,6 +136,12 @@ using (var scope = app.Services.CreateScope())
             Model = "Corolla",
             Year = 2022
         });
+        context.SaveChanges();
+    }
+    else
+    {
+        // Ensure Aarav has a password even if his account was previously seeded
+        sampleCustomer.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Customer@1234");
         context.SaveChanges();
     }
 

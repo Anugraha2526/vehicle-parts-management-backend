@@ -9,7 +9,7 @@ namespace VehicleParts.Api.Controllers.AdminCore;
 // REST controller for parts inventory management — Admin only
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class PartsController : ControllerBase
 {
     private readonly IPartsService _partsService;
