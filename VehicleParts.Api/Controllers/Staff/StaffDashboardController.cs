@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Infrastructure.Persistence;
@@ -6,6 +7,7 @@ namespace VehicleParts.Api.Controllers.Staff;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Staff,Admin")]
 public class StaffDashboardController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -56,5 +58,21 @@ public class StaffDashboardController : ControllerBase
             LowStockParts = lowStockCount,
             WeeklySales = weeklySales
         });
+    }
+
+    // Parts list for invoice creation — accessible to Staff without needing PartsController
+    [HttpGet("parts")]
+    public async Task<IActionResult> GetPartsForInvoice(CancellationToken cancellationToken)
+    {
+        var parts = await _context.Parts
+            .Select(p => new {
+                p.Id,
+                p.PartName,
+                p.SellingPrice,
+                p.QuantityInStock
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(parts);
     }
 }

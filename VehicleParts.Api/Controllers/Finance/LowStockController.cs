@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
+[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class LowStockController : ControllerBase
@@ -44,3 +46,4 @@ public sealed class LowStockController : ControllerBase
         return Ok(result);
     }
 }
+
