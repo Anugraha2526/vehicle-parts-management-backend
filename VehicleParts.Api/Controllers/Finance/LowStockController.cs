@@ -4,9 +4,9 @@ using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
-[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class LowStockController : ControllerBase
 {
     private readonly ILowStockService _lowStockService;
@@ -46,4 +46,3 @@ public sealed class LowStockController : ControllerBase
         return Ok(result);
     }
 }
-

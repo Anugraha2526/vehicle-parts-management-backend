@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -5,6 +6,7 @@ namespace VehicleParts.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public sealed class ChatController : ControllerBase
 {
     // comprehensive prompt so Gemini can answer both vehicle and ChitoSpare questions

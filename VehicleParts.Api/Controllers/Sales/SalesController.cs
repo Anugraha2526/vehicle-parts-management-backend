@@ -8,6 +8,7 @@ namespace VehicleParts.Api.Controllers.Sales;
 [Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class SalesController : ControllerBase
 {
     private readonly ISalesService _salesService;

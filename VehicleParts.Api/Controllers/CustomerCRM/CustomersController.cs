@@ -9,6 +9,7 @@ namespace VehicleParts.Api.Controllers.CustomerCRM
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Staff")]
     public class CustomersController : ControllerBase
     {
         private readonly ICustomerService _customerService;

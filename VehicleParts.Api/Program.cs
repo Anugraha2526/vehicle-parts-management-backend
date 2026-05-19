@@ -151,7 +151,7 @@ using (var scope = app.Services.CreateScope())
     {
         adminUser = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
-            FullName = "Chito Admin",
+            FullName = "Sabin Devkota",
             Email = "admin@chitospare.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@1234"),
             Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin,
@@ -161,6 +161,7 @@ using (var scope = app.Services.CreateScope())
     }
     else
     {
+        adminUser.FullName = "Sabin Devkota";
         adminUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@1234");
     }
     context.SaveChanges();

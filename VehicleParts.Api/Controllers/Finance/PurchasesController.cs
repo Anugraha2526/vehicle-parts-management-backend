@@ -5,9 +5,9 @@ using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
-[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class PurchasesController : ControllerBase
 {
     private readonly IPurchaseService _purchaseService;
@@ -31,4 +31,3 @@ public sealed class PurchasesController : ControllerBase
         return Ok(result);
     }
 }
-

@@ -7,7 +7,7 @@ namespace VehicleParts.Api.Controllers.Staff;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Staff,Admin")]
+[Authorize(Roles = "Admin,Staff")]
 public class StaffDashboardController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

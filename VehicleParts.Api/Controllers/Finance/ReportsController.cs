@@ -7,6 +7,7 @@ namespace VehicleParts.Api.Controllers.Finance;
 [Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class ReportsController : ControllerBase
 {
     private readonly IReportService _reportService;
