@@ -191,6 +191,30 @@ namespace VehicleParts.Infrastructure.Services
             return true;
         }
 
+        public async Task<bool> UpdateVehicleAsync(Guid customerId, Guid vehicleId, VehicleDto dto)
+        {
+            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId && v.UserId == customerId);
+            if (vehicle == null) return false;
+
+            vehicle.VehicleNumber = dto.VehicleNumber;
+            vehicle.Make = dto.Make;
+            vehicle.Model = dto.Model;
+            vehicle.Year = dto.Year;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteVehicleAsync(Guid customerId, Guid vehicleId)
+        {
+            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId && v.UserId == customerId);
+            if (vehicle == null) return false;
+
+            _context.Vehicles.Remove(vehicle);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> UpdateVehicleAsync(Guid vehicleId, VehicleDto dto)
         {
             var vehicle = await _context.Vehicles.FindAsync(vehicleId);
