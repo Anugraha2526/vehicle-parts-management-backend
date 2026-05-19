@@ -212,6 +212,15 @@ The ChitoSpare Team";
         return ServiceResult.Ok("Invoice successfully marked as paid.");
     }
 
+    public async Task<ServiceResult> MarkInvoiceAsUnpaidAsync(Guid invoiceId, CancellationToken cancellationToken = default)
+    {
+        var result = await _salesRepository.MarkInvoiceAsUnpaidAsync(invoiceId, cancellationToken);
+        if (!result)
+            return ServiceResult.Fail($"Invoice {invoiceId} could not be marked as unpaid. It may not exist or is already unpaid.");
+
+        return ServiceResult.Ok("Invoice successfully marked as unpaid.");
+    }
+
     private static string GenerateInvoiceNumber(DateTime soldAt)
         => $"SINV-{soldAt:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}";
 

@@ -82,4 +82,15 @@ public sealed class SalesRepository : ISalesRepository
         await _db.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task<bool> MarkInvoiceAsUnpaidAsync(Guid invoiceId, CancellationToken cancellationToken)
+    {
+        var invoice = await _db.SalesInvoices.FindAsync(new object[] { invoiceId }, cancellationToken);
+        if (invoice == null || !invoice.IsPaid) return false;
+
+        invoice.IsPaid = false;
+        invoice.PaidAtUtc = null;
+        await _db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

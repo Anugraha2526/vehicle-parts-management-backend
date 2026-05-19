@@ -18,5 +18,6 @@ public interface ISalesService
     Task<ServiceResult> SendDueRemindersAsync(int olderThanMonths = 1, Guid? specificInvoiceId = null, CancellationToken cancellationToken = default);
 
     Task<ServiceResult> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken = default);
+    Task<ServiceResult> MarkInvoiceAsUnpaidAsync(Guid invoiceId, CancellationToken cancellationToken = default);
 }
 
