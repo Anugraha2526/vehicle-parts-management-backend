@@ -4,7 +4,6 @@ using VehicleParts.Application.Modules.AdminCore.Services;
 using VehicleParts.Application.Modules.CustomerCRM.Interfaces;
 using VehicleParts.Application.Modules.CustomerCRM.Services;
 using VehicleParts.Application.Modules.CustomerPortal.Interfaces;
-using VehicleParts.Application.Modules.CustomerPortal.Services;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 using VehicleParts.Application.Modules.Finance.Services;
 using VehicleParts.Application.Modules.Identity.Interfaces;
@@ -30,7 +29,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILowStockService, LowStockService>();
 
         services.AddScoped<ISalesService, SalesService>();
-        services.AddScoped<ICustomerPortalService, CustomerPortalService>();
+
+        // ICustomerPortalService is registered by the Infrastructure layer (Program.cs)
+        // because the implementation requires direct ApplicationDbContext access.
 
         return services;
     }
