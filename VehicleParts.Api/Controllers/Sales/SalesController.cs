@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Sales.DTOs;
 using VehicleParts.Application.Modules.Sales.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Sales;
 
+[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class SalesController : ControllerBase
 {
     private readonly ISalesService _salesService;
@@ -112,6 +115,19 @@ public sealed class SalesController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>Admin action reverting a mistakenly paid invoice back to pending.</summary>
+    [HttpPost("invoice/{id:guid}/mark-unpaid")]
+    public async Task<IActionResult> MarkInvoiceAsUnpaid(
+        Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _salesService.MarkInvoiceAsUnpaidAsync(id, cancellationToken);
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }
+
 
 

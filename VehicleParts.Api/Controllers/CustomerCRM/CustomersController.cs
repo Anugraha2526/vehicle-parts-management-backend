@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using VehicleParts.Application.DTOs;
@@ -5,6 +6,7 @@ using VehicleParts.Application.Interfaces;
 
 namespace VehicleParts.Api.Controllers.CustomerCRM
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class CustomersController : ControllerBase
@@ -17,6 +19,7 @@ namespace VehicleParts.Api.Controllers.CustomerCRM
         }
 
         // Get all customers (Feature 8)
+        [Authorize(Roles = "Staff,Admin")]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllCustomers()
         {
@@ -25,6 +28,7 @@ namespace VehicleParts.Api.Controllers.CustomerCRM
         }
 
         // Feature 6 & 12: Register customer (Staff or Self)
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> RegisterCustomer([FromBody] RegisterCustomerDto dto)
         {
@@ -33,6 +37,7 @@ namespace VehicleParts.Api.Controllers.CustomerCRM
         }
 
         // Feature 10: Search customers
+        [Authorize(Roles = "Staff,Admin")]
         [HttpGet("search")]
         public async Task<IActionResult> SearchCustomers([FromQuery] string? query = null)
         {
@@ -84,5 +89,24 @@ namespace VehicleParts.Api.Controllers.CustomerCRM
             if (!result) return BadRequest("Could not delete vehicle.");
             return Ok(new { Message = "Vehicle deleted successfully." });
         }
+
+        // Feature 12: Update vehicle
+        [HttpPut("{id}/vehicles/{vehicleId}")]
+        public async Task<IActionResult> UpdateVehicle(Guid id, Guid vehicleId, [FromBody] VehicleDto dto)
+        {
+            var result = await _customerService.UpdateVehicleAsync(vehicleId, dto);
+            if (!result) return BadRequest("Could not update vehicle.");
+            return Ok(new { Message = "Vehicle updated successfully." });
+        }
+
+        // Feature 12: Delete vehicle
+        [HttpDelete("{id}/vehicles/{vehicleId}")]
+        public async Task<IActionResult> DeleteVehicle(Guid id, Guid vehicleId)
+        {
+            var result = await _customerService.DeleteVehicleAsync(vehicleId);
+            if (!result) return BadRequest("Could not delete vehicle.");
+            return Ok(new { Message = "Vehicle deleted successfully." });
+        }
     }
 }
+

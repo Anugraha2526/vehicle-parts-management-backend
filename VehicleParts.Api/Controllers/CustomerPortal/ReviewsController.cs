@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.CustomerPortal.Interfaces;
 
 namespace VehicleParts.Api.Controllers.CustomerPortal;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Customer")]
 public sealed class ReviewsController : ControllerBase
 {
     private readonly ICustomerPortalService _customerPortalService;

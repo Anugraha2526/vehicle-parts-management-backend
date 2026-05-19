@@ -8,6 +8,7 @@ public interface IReportService
 {
     Task<ServiceResult<FinancialReportDto>> GetFinancialReportAsync(
         string type,
+        DateTime? referenceDateUtc = null,
         CancellationToken cancellationToken = default);
 
     Task<DashboardSummaryDto> GetDashboardSummaryAsync(CancellationToken cancellationToken = default);

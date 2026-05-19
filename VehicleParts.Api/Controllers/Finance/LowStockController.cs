@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,Staff")]
+[Route("api/finance/lowstock")]
 public sealed class LowStockController : ControllerBase
 {
     private readonly ILowStockService _lowStockService;
