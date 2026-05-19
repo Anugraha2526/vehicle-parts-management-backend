@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Finance.DTOs;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
+[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class PurchasesController : ControllerBase
@@ -29,3 +31,4 @@ public sealed class PurchasesController : ControllerBase
         return Ok(result);
     }
 }
+

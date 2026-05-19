@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Finance.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Finance;
 
+[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class ReportsController : ControllerBase
@@ -35,3 +37,4 @@ public sealed class ReportsController : ControllerBase
         return Ok(result);
     }
 }
+

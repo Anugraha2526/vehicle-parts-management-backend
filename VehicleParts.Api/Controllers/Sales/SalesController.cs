@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VehicleParts.Application.Modules.Sales.DTOs;
 using VehicleParts.Application.Modules.Sales.Interfaces;
 
 namespace VehicleParts.Api.Controllers.Sales;
 
+[Authorize(Roles = "Staff,Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class SalesController : ControllerBase
@@ -113,5 +115,6 @@ public sealed class SalesController : ControllerBase
         return Ok(result);
     }
 }
+
 
 

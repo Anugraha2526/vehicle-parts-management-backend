@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using VehicleParts.Application.DTOs;
@@ -5,7 +6,8 @@ using VehicleParts.Application.Interfaces;
 
 namespace VehicleParts.Api.Controllers.CustomerCRM
 {
-    [ApiController]
+    [Authorize(Roles = "Staff,Admin")]
+[ApiController]
     [Route("api/[controller]")]
     public class CustomersController : ControllerBase
     {
@@ -68,3 +70,4 @@ namespace VehicleParts.Api.Controllers.CustomerCRM
         }
     }
 }
+
