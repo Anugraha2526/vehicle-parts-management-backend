@@ -13,9 +13,13 @@ public interface ICustomerPortalService
     Task<ServiceResult<ReviewResponseDto>> SubmitReviewAsync(Guid customerId, SubmitReviewDto request, CancellationToken cancellationToken = default);
     Task<ServiceResult<List<ReviewResponseDto>>> GetReviewsAsync(CancellationToken cancellationToken = default);
 
-    // Part requests
+    // Part requests — customer facing
     Task<ServiceResult<PartRequestResponseDto>> RequestUnavailablePartAsync(Guid customerId, RequestPartDto request, CancellationToken cancellationToken = default);
     Task<ServiceResult<List<PartRequestResponseDto>>> GetPartRequestsAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+    // Part requests — admin facing
+    Task<ServiceResult<List<PartRequestResponseDto>>> GetAllPendingPartRequestsAsync(CancellationToken cancellationToken = default);
+    Task<ServiceResult<PartRequestResponseDto>> UpdatePartRequestStatusAsync(Guid id, string status, CancellationToken cancellationToken = default);
 
     // Service history — customer's own sales invoices with summary stats
     Task<ServiceResult<ServiceHistoryDto>> GetServiceHistoryAsync(Guid customerId, CancellationToken cancellationToken = default);

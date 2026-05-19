@@ -360,6 +360,29 @@ using (var scope = app.Services.CreateScope())
             );
         }
 
+        // seed extra pending requests by name so the admin panel always has demo data
+        if (portalCustomer != null && !context.PartRequests.Any(pr => pr.RequestedPartName == "Honda Civic 2021 Oil Filter"))
+        {
+            context.PartRequests.Add(new VehicleParts.Domain.Modules.CustomerPortal.Entities.PartRequest
+            {
+                CustomerId = portalCustomer.Id,
+                RequestedPartName = "Honda Civic 2021 Oil Filter",
+                Description = "Genuine Honda part, not aftermarket.",
+                Status = "Pending"
+            });
+        }
+
+        if (portalCustomer != null && !context.PartRequests.Any(pr => pr.RequestedPartName == "Denso Oxygen Sensor - Toyota"))
+        {
+            context.PartRequests.Add(new VehicleParts.Domain.Modules.CustomerPortal.Entities.PartRequest
+            {
+                CustomerId = portalCustomer.Id,
+                RequestedPartName = "Denso Oxygen Sensor - Toyota",
+                Description = string.Empty,
+                Status = "Pending"
+            });
+        }
+
         context.SaveChanges();
     }
 }

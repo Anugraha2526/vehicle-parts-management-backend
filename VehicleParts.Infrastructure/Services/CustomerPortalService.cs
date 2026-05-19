@@ -153,8 +153,42 @@ public sealed class CustomerPortalService : ICustomerPortalService
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        return ServiceResult<List<PartRequestResponseDto>>.Ok(requests.Select(MapPartRequest).ToList());
+        return ServiceResult<List<PartRequestResponseDto>>.Ok(requests.Select(pr => MapPartRequest(pr)).ToList());
     }
+
+    public async Task<ServiceResult<List<PartRequestResponseDto>>> GetAllPendingPartRequestsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        // join with Users so admin can see who submitted each request
+        var rows = await _db.PartRequests
+            .Where(pr => pr.Status == "Pending")
+            .Join(_db.Users,
+                pr => pr.CustomerId,
+                u => u.Id,
+                (pr, u) => new { Request = pr, u.FullName })
+            .OrderByDescending(x => x.Request.CreatedAtUtc)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return ServiceResult<List<PartRequestResponseDto>>.Ok(
+            rows.Select(x => MapPartRequest(x.Request, x.FullName)).ToList());
+    }
+
+    public async Task<ServiceResult<PartRequestResponseDto>> UpdatePartRequestStatusAsync(
+        Guid id,
+        string status,
+        CancellationToken cancellationToken = default)
+    {
+        var request = await _db.PartRequests.FindAsync(new object[] { id }, cancellationToken);
+        if (request == null)
+            return ServiceResult<PartRequestResponseDto>.Fail("Part request not found.");
+
+        request.Status = status;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return ServiceResult<PartRequestResponseDto>.Ok(MapPartRequest(request));
+    }
+
 
     // ─── Service History ─────────────────────────────────────────────
 
@@ -207,10 +241,11 @@ public sealed class CustomerPortalService : ICustomerPortalService
         CreatedAtUtc = r.CreatedAtUtc
     };
 
-    private static PartRequestResponseDto MapPartRequest(PartRequest pr) => new()
+    private static PartRequestResponseDto MapPartRequest(PartRequest pr, string customerName = "") => new()
     {
         Id = pr.Id,
         CustomerId = pr.CustomerId,
+        CustomerName = customerName,
         RequestedPartName = pr.RequestedPartName,
         Description = pr.Description,
         Status = pr.Status,
