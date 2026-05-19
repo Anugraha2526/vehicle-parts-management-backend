@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using VehicleParts.Application.Modules.AdminCore.DTOs;
 using VehicleParts.Application.Modules.AdminCore.Interfaces;
-using VehicleParts.Domain.Modules.AdminCore.Entities;
+using VehicleParts.Domain.Modules.CustomerCRM.Entities;
 
 namespace VehicleParts.Application.Modules.AdminCore.Services;
 
@@ -43,7 +43,7 @@ public sealed class StaffService : IStaffService
         if (await _staffRepository.EmailExistsAsync(dto.Email, cancellationToken))
             throw new ArgumentException($"Email '{dto.Email}' is already registered.");
 
-        var staffMember = new StaffMember
+        var staffMember = new User
         {
             FullName = dto.FullName,
             Email = dto.Email,
@@ -105,14 +105,14 @@ public sealed class StaffService : IStaffService
         return ToDto(updated);
     }
 
-    private static StaffResponseDto ToDto(StaffMember s) => new()
+    private static StaffResponseDto ToDto(User u) => new()
     {
-        Id = s.Id,
-        FullName = s.FullName,
-        Email = s.Email,
-        Role = s.Role.ToString(),
-        IsActive = s.IsActive,
-        CreatedAtUtc = s.CreatedAtUtc,
-        UpdatedAtUtc = s.UpdatedAtUtc
+        Id = u.Id,
+        FullName = u.FullName,
+        Email = u.Email,
+        Role = u.Role.ToString(),
+        IsActive = u.IsActive,
+        CreatedAtUtc = u.CreatedAtUtc,
+        UpdatedAtUtc = u.UpdatedAtUtc
     };
 }

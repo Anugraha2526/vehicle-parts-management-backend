@@ -12,5 +12,11 @@ public interface ISalesService
     Task<ServiceResult> SendInvoiceEmailAsync(Guid invoiceId, CancellationToken cancellationToken = default);
 
     Task<ServiceResult<List<SalesInvoiceResponseDto>>> GetRecentInvoicesAsync(int limit = 10, CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<List<SalesInvoiceResponseDto>>> GetUnpaidInvoicesAsync(int olderThanMonths = 1, CancellationToken cancellationToken = default);
+
+    Task<ServiceResult> SendDueRemindersAsync(int olderThanMonths = 1, Guid? specificInvoiceId = null, CancellationToken cancellationToken = default);
+
+    Task<ServiceResult> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken = default);
 }
 

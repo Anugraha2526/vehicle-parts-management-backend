@@ -15,7 +15,9 @@ public sealed class RegisterStaffDto
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
+    [RegularExpression(
+        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$",
+        ErrorMessage = "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.")]
     [MaxLength(200)]
     public string Password { get; set; } = string.Empty;
 

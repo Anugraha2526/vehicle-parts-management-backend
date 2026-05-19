@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using VehicleParts.Api.Extensions;
@@ -9,6 +10,7 @@ using VehicleParts.Infrastructure.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -108,9 +110,9 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<VehicleParts.Infrastructure.Persistence.ApplicationDbContext>();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 
-    if (!context.Users.Any(u => u.Role == "Customer"))
+    if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer))
     {
         var sampleCustomer = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
@@ -118,7 +120,7 @@ using (var scope = app.Services.CreateScope())
             Email = "aarav@example.com",
             PhoneNumber = "9841234567",
             Address = "Kathmandu, Nepal",
-            Role = "Customer",
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer,
             IsActive = true
         };
         context.Users.Add(sampleCustomer);
@@ -133,6 +135,87 @@ using (var scope = app.Services.CreateScope())
             Year = 2022
         });
         context.SaveChanges();
+    }
+
+    // seed a default staff member if none exists yet
+    if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff || u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin))
+    {
+        var sampleStaff = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
+        {
+            FullName = "Anugraha Staff",
+            Email = "anugraha@example.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Staff@1234"),
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff,
+            IsActive = true
+        };
+        context.Users.Add(sampleStaff);
+        context.SaveChanges();
+    }
+
+    // Seed Mock Parts matching the exact style pattern
+    if (!context.Parts.Any())
+    {
+        var mockVendor = new VehicleParts.Domain.Modules.AdminCore.Entities.Vendor
+        {
+            VendorName = "Mock Vendor",
+            ContactPerson = "Mock",
+            Email = "mock@mock.com",
+            Phone = "1234",
+            Address = "Mock City"
+        };
+        context.Vendors.Add(mockVendor);
+        context.SaveChanges(); // Need to save to generate Vendor Id
+
+        var sparkPlug = new VehicleParts.Domain.Modules.AdminCore.Entities.Part
+        {
+            PartName = "NGK Spark Plug",
+            PartNumber = "NGK-001",
+            Category = "Engine",
+            VendorId = mockVendor.Id,
+            QuantityInStock = 100,
+            UnitCost = 200,
+            SellingPrice = 350
+        };
+        context.Parts.Add(sparkPlug);
+
+        var brakeDisc = new VehicleParts.Domain.Modules.AdminCore.Entities.Part
+        {
+            PartName = "Bosch Brake Disc",
+            PartNumber = "BSH-BRK",
+            Category = "Brakes",
+            VendorId = mockVendor.Id,
+            QuantityInStock = 50,
+            UnitCost = 800,
+            SellingPrice = 1200
+        };
+        context.Parts.Add(brakeDisc);
+        
+        context.SaveChanges();
+    }
+
+    // Seed Demo Overdue Invoice for Credit Reminders Dashboard
+    if (!context.SalesInvoices.Any(i => i.InvoiceNumber == "SINV-OVERDUE-01"))
+    {
+        var dummyCustomer = context.Users.FirstOrDefault(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer);
+        var dummyStaff = context.Users.FirstOrDefault(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff || u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin);
+
+        if (dummyCustomer != null && dummyStaff != null)
+        {
+            var overdueInvoice = new VehicleParts.Domain.Modules.Sales.Entities.SalesInvoice
+            {
+                InvoiceNumber = "SINV-OVERDUE-01",
+                CustomerId = dummyCustomer.Id,
+                StaffId = dummyStaff.Id,
+                SoldAtUtc = DateTime.UtcNow.AddDays(-40),
+                SubTotal = 6000,
+                LoyaltyDiscountApplied = true,
+                DiscountAmount = 600,
+                TotalAmount = 5400,
+                IsPaid = false
+            };
+            context.SalesInvoices.Add(overdueInvoice);
+            context.SaveChanges();
+        }
     }
 }
 

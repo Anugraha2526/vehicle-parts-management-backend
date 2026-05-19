@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAdminCoreService, AdminCoreService>();
         services.AddScoped<IStaffService, StaffService>();
         services.AddScoped<IVendorService, VendorService>();
+        services.AddScoped<IPartsService, PartsService>();
         services.AddScoped<ICustomerCrmService, CustomerCrmService>();
 
         services.AddScoped<IPurchaseService, PurchaseService>();
