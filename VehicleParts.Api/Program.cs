@@ -137,6 +137,26 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 
+    // seed a default admin or reset password if they already exist
+    var adminUser = context.Users.FirstOrDefault(u => u.Email == "admin@chitospare.com");
+    if (adminUser == null)
+    {
+        adminUser = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
+        {
+            FullName = "Chito Admin",
+            Email = "admin@chitospare.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@1234"),
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin,
+            IsActive = true
+        };
+        context.Users.Add(adminUser);
+    }
+    else
+    {
+        adminUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@1234");
+    }
+    context.SaveChanges();
+
     // seed a default staff member or reset password if they exist
     var anugrahaStaff = context.Users.FirstOrDefault(u => u.Email == "anugraha@example.com");
     if (anugrahaStaff == null)
