@@ -115,6 +115,18 @@ public sealed class SalesController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>Admin action reverting a mistakenly paid invoice back to pending.</summary>
+    [HttpPost("invoice/{id:guid}/mark-unpaid")]
+    public async Task<IActionResult> MarkInvoiceAsUnpaid(
+        Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _salesService.MarkInvoiceAsUnpaidAsync(id, cancellationToken);
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
 }
 
 

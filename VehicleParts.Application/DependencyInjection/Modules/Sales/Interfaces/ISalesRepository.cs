@@ -22,4 +22,5 @@ public interface ISalesRepository
 
     /// <summary>Marks an invoice safely as paid and commits to EF Tracking.</summary>
     Task<bool> MarkInvoiceAsPaidAsync(Guid invoiceId, CancellationToken cancellationToken);
+    Task<bool> MarkInvoiceAsUnpaidAsync(Guid invoiceId, CancellationToken cancellationToken);
 }
