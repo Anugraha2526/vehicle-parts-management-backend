@@ -125,5 +125,29 @@ public sealed class ApplicationDbContext : DbContext
             builder.Property(v => v.Address).HasMaxLength(500);
             builder.Property(v => v.Notes).HasMaxLength(500);
         });
+
+        // Feature 13: Customer portal — appointments, reviews, part requests
+        modelBuilder.Entity<Appointment>(builder =>
+        {
+            builder.Property(a => a.ServiceType).HasMaxLength(100).IsRequired();
+            builder.Property(a => a.Status).HasMaxLength(50).IsRequired();
+            builder.Property(a => a.Notes).HasMaxLength(500);
+            builder.HasIndex(a => a.CustomerId);
+        });
+
+        modelBuilder.Entity<ServiceReview>(builder =>
+        {
+            builder.Property(r => r.ServiceType).HasMaxLength(100).IsRequired();
+            builder.Property(r => r.Comment).HasMaxLength(1000).IsRequired();
+            builder.HasIndex(r => r.CustomerId);
+        });
+
+        modelBuilder.Entity<PartRequest>(builder =>
+        {
+            builder.Property(pr => pr.RequestedPartName).HasMaxLength(200).IsRequired();
+            builder.Property(pr => pr.Description).HasMaxLength(500);
+            builder.Property(pr => pr.Status).HasMaxLength(50).IsRequired();
+            builder.HasIndex(pr => pr.CustomerId);
+        });
     }
 }
