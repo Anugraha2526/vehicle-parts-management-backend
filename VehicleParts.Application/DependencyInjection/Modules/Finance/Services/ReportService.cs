@@ -16,6 +16,7 @@ public sealed class ReportService : IReportService
 
     public async Task<ServiceResult<FinancialReportDto>> GetFinancialReportAsync(
         string type,
+        DateTime? referenceDateUtc = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(type))
@@ -25,7 +26,7 @@ public sealed class ReportService : IReportService
 
         try
         {
-            var report = await _reportRepository.GetFinancialReportAsync(type, cancellationToken);
+            var report = await _reportRepository.GetFinancialReportAsync(type, referenceDateUtc, cancellationToken);
             return ServiceResult<FinancialReportDto>.Ok(report, "Financial report generated.");
         }
         catch (ArgumentException ex)

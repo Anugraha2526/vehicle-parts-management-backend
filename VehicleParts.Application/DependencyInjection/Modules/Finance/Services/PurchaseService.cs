@@ -33,6 +33,13 @@ public sealed class PurchaseService : IPurchaseService
             return ServiceResult<PurchaseInvoiceResponseDto>.Fail("Unit cost cannot be negative.");
         }
 
+        var vendorExists = await _purchaseRepository.VendorExistsAsync(request.VendorId, cancellationToken);
+        if (!vendorExists)
+        {
+            return ServiceResult<PurchaseInvoiceResponseDto>.Fail(
+                $"Vendor not found: {request.VendorId}");
+        }
+
         var partIds = request.Items.Select(item => item.PartId).Distinct().ToArray();
         var parts = await _purchaseRepository.GetPartsByIdsAsync(partIds, cancellationToken);
         var partMap = parts.ToDictionary(part => part.Id);
@@ -80,6 +87,60 @@ public sealed class PurchaseService : IPurchaseService
         };
 
         return ServiceResult<PurchaseInvoiceResponseDto>.Ok(response, "Purchase invoice created and stock updated.");
+    }
+
+    public async Task<ServiceResult<IReadOnlyList<PurchaseInvoiceResponseDto>>> GetPurchaseInvoicesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var invoices = await _purchaseRepository.GetPurchaseInvoicesAsync(cancellationToken);
+        var response = invoices.Select(MapInvoiceSummary).ToArray();
+        return ServiceResult<IReadOnlyList<PurchaseInvoiceResponseDto>>.Ok(
+            response,
+            "Purchase invoices fetched.");
+    }
+
+    public async Task<ServiceResult<PurchaseInvoiceDetailResponseDto>> GetPurchaseInvoiceByIdAsync(
+        Guid invoiceId,
+        CancellationToken cancellationToken = default)
+    {
+        var invoice = await _purchaseRepository.GetPurchaseInvoiceByIdAsync(invoiceId, cancellationToken);
+        if (invoice is null)
+        {
+            return ServiceResult<PurchaseInvoiceDetailResponseDto>.Fail("Purchase invoice not found.");
+        }
+
+        var response = new PurchaseInvoiceDetailResponseDto
+        {
+            InvoiceId = invoice.Id,
+            InvoiceNumber = invoice.InvoiceNumber,
+            VendorId = invoice.VendorId,
+            PurchasedAtUtc = invoice.PurchasedAtUtc,
+            TotalAmount = invoice.TotalAmount,
+            TotalItems = invoice.Items.Sum(item => item.Quantity),
+            Items = invoice.Items
+                .Select(item => new PurchaseInvoiceLineItemResponseDto
+                {
+                    PartId = item.PartId,
+                    Quantity = item.Quantity,
+                    UnitCost = item.UnitCost,
+                    LineTotal = item.LineTotal
+                })
+                .ToArray()
+        };
+
+        return ServiceResult<PurchaseInvoiceDetailResponseDto>.Ok(response, "Purchase invoice fetched.");
+    }
+
+    private static PurchaseInvoiceResponseDto MapInvoiceSummary(PurchaseInvoice invoice)
+    {
+        return new PurchaseInvoiceResponseDto
+        {
+            InvoiceId = invoice.Id,
+            InvoiceNumber = invoice.InvoiceNumber,
+            PurchasedAtUtc = invoice.PurchasedAtUtc,
+            TotalAmount = invoice.TotalAmount,
+            TotalItems = invoice.Items.Sum(item => item.Quantity)
+        };
     }
 
     private static string GenerateInvoiceNumber(DateTime purchasedAtUtc)
