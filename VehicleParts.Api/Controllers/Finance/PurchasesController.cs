@@ -8,7 +8,6 @@ namespace VehicleParts.Api.Controllers.Finance;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin,Staff")]
-[Route("api/finance/purchases")]
 public sealed class PurchasesController : ControllerBase
 {
     private readonly IPurchaseService _purchaseService;
