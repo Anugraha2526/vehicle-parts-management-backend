@@ -60,7 +60,6 @@ public class StaffDashboardController : ControllerBase
         });
     }
 
-    // Parts list for invoice creation — accessible to Staff without needing PartsController
     [HttpGet("parts")]
     public async Task<IActionResult> GetPartsForInvoice(CancellationToken cancellationToken)
     {
@@ -74,5 +73,47 @@ public class StaffDashboardController : ControllerBase
             .ToListAsync(cancellationToken);
 
         return Ok(parts);
+    }
+
+    [HttpGet("customer-reports")]
+    public async Task<IActionResult> GetCustomerReports(CancellationToken cancellationToken)
+    {
+        var customerRole = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer;
+
+        var customers = await _context.Users
+            .Where(u => u.Role == customerRole)
+            .Select(c => new
+            {
+                c.Id,
+                c.FullName,
+                c.Email,
+                c.PhoneNumber,
+                InvoiceCount = _context.SalesInvoices.Count(s => s.CustomerId == c.Id),
+                TotalSpent = _context.SalesInvoices.Where(s => s.CustomerId == c.Id).Sum(s => (decimal?)s.TotalAmount) ?? 0,
+                PendingAmount = _context.SalesInvoices.Where(s => s.CustomerId == c.Id && !s.IsPaid).Sum(s => (decimal?)s.TotalAmount) ?? 0,
+                PendingInvoicesCount = _context.SalesInvoices.Count(s => s.CustomerId == c.Id && !s.IsPaid)
+            })
+            .ToListAsync(cancellationToken);
+
+        var regulars = customers
+            .OrderByDescending(c => c.InvoiceCount)
+            .Take(10);
+
+        var highSpenders = customers
+            .OrderByDescending(c => c.TotalSpent)
+            .Take(10);
+
+        var pendingCredits = customers
+            .Where(c => c.PendingInvoicesCount > 0)
+            .OrderByDescending(c => c.PendingAmount)
+            .Take(10);
+
+        return Ok(new
+        {
+            AllCustomers = customers,
+            Regulars = regulars,
+            HighSpenders = highSpenders,
+            PendingCredits = pendingCredits
+        });
     }
 }
