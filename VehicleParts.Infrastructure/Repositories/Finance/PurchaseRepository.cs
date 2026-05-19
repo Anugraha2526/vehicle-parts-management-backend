@@ -15,6 +15,14 @@ public sealed class PurchaseRepository : IPurchaseRepository
         _dbContext = dbContext;
     }
 
+    public async Task<bool> VendorExistsAsync(
+        Guid vendorId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Vendors
+            .AnyAsync(vendor => vendor.Id == vendorId, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Part>> GetPartsByIdsAsync(
         IReadOnlyCollection<Guid> partIds,
         CancellationToken cancellationToken = default)
@@ -36,5 +44,25 @@ public sealed class PurchaseRepository : IPurchaseRepository
         await transaction.CommitAsync(cancellationToken);
 
         return invoice;
+    }
+
+    public async Task<IReadOnlyList<PurchaseInvoice>> GetPurchaseInvoicesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.PurchaseInvoices
+            .AsNoTracking()
+            .Include(invoice => invoice.Items)
+            .OrderByDescending(invoice => invoice.PurchasedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<PurchaseInvoice?> GetPurchaseInvoiceByIdAsync(
+        Guid invoiceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.PurchaseInvoices
+            .AsNoTracking()
+            .Include(invoice => invoice.Items)
+            .FirstOrDefaultAsync(invoice => invoice.Id == invoiceId, cancellationToken);
     }
 }

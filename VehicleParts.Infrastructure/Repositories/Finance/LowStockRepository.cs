@@ -77,4 +77,9 @@ public sealed class LowStockRepository : ILowStockRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

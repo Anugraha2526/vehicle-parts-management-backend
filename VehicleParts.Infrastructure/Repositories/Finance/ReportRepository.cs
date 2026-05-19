@@ -17,10 +17,12 @@ public sealed class ReportRepository : IReportRepository
 
     public async Task<FinancialReportDto> GetFinancialReportAsync(
         string type,
+        DateTime? referenceDateUtc = null,
         CancellationToken cancellationToken = default)
     {
         var normalizedType = type.Trim().ToLowerInvariant();
-        var (startUtc, endUtc) = ResolvePeriod(normalizedType, DateTime.UtcNow);
+        var referenceUtc = (referenceDateUtc ?? DateTime.UtcNow).ToUniversalTime();
+        var (startUtc, endUtc) = ResolvePeriod(normalizedType, referenceUtc);
 
         var purchaseQuery = _dbContext.PurchaseInvoices
             .Where(invoice => invoice.PurchasedAtUtc >= startUtc && invoice.PurchasedAtUtc <= endUtc);
@@ -37,16 +39,105 @@ public sealed class ReportRepository : IReportRepository
         var totalSalesAmount = await salesQuery
             .SumAsync(invoice => (decimal?)invoice.TotalAmount, cancellationToken) ?? 0m;
 
+        var purchaseTransactions = await purchaseQuery
+            .AsNoTracking()
+            .Select(invoice => new FinancialTransactionDto
+            {
+                EntryType = "Purchase",
+                InvoiceId = invoice.Id,
+                InvoiceNumber = invoice.InvoiceNumber,
+                TransactionDateUtc = invoice.PurchasedAtUtc,
+                ItemCount = invoice.Items.Sum(item => item.Quantity),
+                TotalAmount = invoice.TotalAmount
+            })
+            .ToListAsync(cancellationToken);
+
+        var salesTransactions = await salesQuery
+            .AsNoTracking()
+            .Select(invoice => new FinancialTransactionDto
+            {
+                EntryType = "Sale",
+                InvoiceId = invoice.Id,
+                InvoiceNumber = invoice.InvoiceNumber,
+                TransactionDateUtc = invoice.SoldAtUtc,
+                ItemCount = invoice.Items.Sum(item => item.Quantity),
+                TotalAmount = invoice.TotalAmount
+            })
+            .ToListAsync(cancellationToken);
+
+        var transactions = purchaseTransactions
+            .Concat(salesTransactions)
+            .OrderByDescending(entry => entry.TransactionDateUtc)
+            .ToArray();
+
+        var rawPurchasePartMetrics = await _dbContext.PurchaseInvoiceItems
+            .AsNoTracking()
+            .Where(item =>
+                item.PurchaseInvoice != null &&
+                item.PurchaseInvoice.PurchasedAtUtc >= startUtc &&
+                item.PurchaseInvoice.PurchasedAtUtc <= endUtc)
+            .GroupBy(item => item.PartId)
+            .Select(group => new
+            {
+                PartId = group.Key,
+                Quantity = group.Sum(item => item.Quantity),
+                Amount = group.Sum(item => item.UnitCost * item.Quantity)
+            })
+            .OrderByDescending(item => item.Amount)
+            .Take(5)
+            .ToListAsync(cancellationToken);
+
+        var purchasePartIds = rawPurchasePartMetrics.Select(item => item.PartId).ToArray();
+        var purchasePartNames = await _dbContext.Parts
+            .AsNoTracking()
+            .Where(part => purchasePartIds.Contains(part.Id))
+            .ToDictionaryAsync(part => part.Id, part => part.PartName, cancellationToken);
+
+        var topPurchaseParts = rawPurchasePartMetrics
+            .Select(item => new TopPartMetricDto
+            {
+                PartId = item.PartId,
+                PartName = purchasePartNames.TryGetValue(item.PartId, out var name)
+                    ? name
+                    : $"Part {item.PartId}",
+                Quantity = item.Quantity,
+                Amount = item.Amount
+            })
+            .ToArray();
+
+        var topSalesParts = await _dbContext.SalesInvoiceItems
+            .AsNoTracking()
+            .Where(item =>
+                item.SalesInvoice != null &&
+                item.SalesInvoice.SoldAtUtc >= startUtc &&
+                item.SalesInvoice.SoldAtUtc <= endUtc)
+            .GroupBy(item => new { item.PartId, item.PartName })
+            .Select(group => new TopPartMetricDto
+            {
+                PartId = group.Key.PartId,
+                PartName = group.Key.PartName,
+                Quantity = group.Sum(item => item.Quantity),
+                Amount = group.Sum(item => item.UnitPrice * item.Quantity)
+            })
+            .OrderByDescending(item => item.Amount)
+            .Take(5)
+            .ToArrayAsync(cancellationToken);
+
         return new FinancialReportDto
         {
             PeriodType = normalizedType,
+            ReferenceDateUtc = referenceUtc,
             PeriodStartUtc = startUtc,
             PeriodEndUtc = endUtc,
+            GeneratedAtUtc = DateTime.UtcNow,
             PurchaseInvoiceCount = purchaseInvoiceCount,
             TotalPurchaseAmount = totalPurchaseAmount,
             SalesInvoiceCount = salesInvoiceCount,
             TotalSalesAmount = totalSalesAmount,
-            NetAmount = totalSalesAmount - totalPurchaseAmount
+            NetAmount = totalSalesAmount - totalPurchaseAmount,
+            Transactions = transactions,
+            TopPurchaseParts = topPurchaseParts,
+            TopSalesParts = topSalesParts
         };
     }
 

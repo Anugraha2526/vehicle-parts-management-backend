@@ -23,4 +23,6 @@ public interface ILowStockRepository
     Task<bool> AcknowledgeAlertAsync(
         Guid alertId,
         CancellationToken cancellationToken = default);
+
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -8,4 +8,11 @@ public interface IPurchaseService
     Task<ServiceResult<PurchaseInvoiceResponseDto>> CreatePurchaseInvoiceAsync(
         CreatePurchaseInvoiceDto request,
         CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<IReadOnlyList<PurchaseInvoiceResponseDto>>> GetPurchaseInvoicesAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<ServiceResult<PurchaseInvoiceDetailResponseDto>> GetPurchaseInvoiceByIdAsync(
+        Guid invoiceId,
+        CancellationToken cancellationToken = default);
 }
