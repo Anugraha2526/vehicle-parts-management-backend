@@ -36,11 +36,9 @@ namespace VehicleParts.Infrastructure.Services
 
             var emailLower = dto.Email.Trim().ToLower();
 
-            // Check email uniqueness across Users (Customers) and StaffMembers
-            var emailExistsInUsers = await _context.Users.AnyAsync(u => u.Email.ToLower() == emailLower);
-            var emailExistsInStaff = await _context.StaffMembers.AnyAsync(s => s.Email.ToLower() == emailLower);
-
-            if (emailExistsInUsers || emailExistsInStaff)
+            // all roles (Customer, Staff, Admin) live in the Users table
+            var emailExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == emailLower);
+            if (emailExists)
             {
                 throw new ArgumentException($"Email '{dto.Email}' is already registered.");
             }
@@ -197,60 +195,31 @@ namespace VehicleParts.Infrastructure.Services
         {
             var emailLower = dto.Email.Trim().ToLower();
 
-            // 1. Try to find in Users (Customers)
+            // all roles (Customer, Staff, Admin) live in the Users table
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == emailLower);
 
-            if (user != null)
-            {
-                bool isPasswordCorrect = false;
-                try {
-                    isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-                } catch {
-                    isPasswordCorrect = user.PasswordHash == dto.Password;
-                }
+            if (user == null) return null;
 
-                if (!isPasswordCorrect) return null;
-
-                var token = GenerateJwtToken(user.Id, user.Email, user.FullName, user.Role);
-
-                return new LoginResponseDto
-                {
-                    Id = user.Id,
-                    FullName = user.FullName,
-                    Role = user.Role,
-                    Token = token
-                };
+            bool isPasswordCorrect = false;
+            try {
+                isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            } catch {
+                isPasswordCorrect = user.PasswordHash == dto.Password;
             }
 
-            // 2. Try to find in StaffMembers (Admins / Staff)
-            var staff = await _context.StaffMembers
-                .FirstOrDefaultAsync(s => s.Email.ToLower() == emailLower);
+            if (!isPasswordCorrect) return null;
 
-            if (staff != null)
+            var role = user.Role.ToString();
+            var token = GenerateJwtToken(user.Id, user.Email, user.FullName, role);
+
+            return new LoginResponseDto
             {
-                bool isPasswordCorrect = false;
-                try {
-                    isPasswordCorrect = BCrypt.Net.BCrypt.Verify(dto.Password, staff.PasswordHash);
-                } catch {
-                    isPasswordCorrect = staff.PasswordHash == dto.Password;
-                }
-
-                if (!isPasswordCorrect) return null;
-
-                var roleStr = staff.Role.ToString(); // "Admin" or "Staff"
-                var token = GenerateJwtToken(staff.Id, staff.Email, staff.FullName, roleStr);
-
-                return new LoginResponseDto
-                {
-                    Id = staff.Id,
-                    FullName = staff.FullName,
-                    Role = roleStr,
-                    Token = token
-                };
-            }
-
-            return null;
+                Id = user.Id,
+                FullName = user.FullName,
+                Role = role,
+                Token = token
+            };
         }
 
         private string GenerateJwtToken(Guid userId, string email, string fullName, string role)
@@ -276,10 +245,6 @@ namespace VehicleParts.Infrastructure.Services
                 new Claim(ClaimTypes.Name, fullName),
                 new Claim(ClaimTypes.Role, role),
                 new Claim("role", role)
-                Id = user.Id,
-                FullName = user.FullName,
-                Role = user.Role.ToString(),
-                Token = "mock-jwt-token"
             };
 
             var signingCredentials = new SigningCredentials(
