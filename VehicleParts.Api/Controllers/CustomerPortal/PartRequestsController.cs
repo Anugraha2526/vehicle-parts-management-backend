@@ -9,36 +9,36 @@ namespace VehicleParts.Api.Controllers.CustomerPortal;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Customer")]
-public sealed class AppointmentsController : ControllerBase
+public sealed class PartRequestsController : ControllerBase
 {
     private readonly ICustomerPortalService _portalService;
 
-    public AppointmentsController(ICustomerPortalService portalService)
+    public PartRequestsController(ICustomerPortalService portalService)
     {
         _portalService = portalService;
     }
 
-    // GET /api/Appointments — returns all appointments for the logged-in customer
+    // GET /api/PartRequests — returns all part requests submitted by the logged-in customer
     [HttpGet]
-    public async Task<IActionResult> GetAppointments(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetPartRequests(CancellationToken cancellationToken)
     {
         var customerId = GetCustomerId();
         if (customerId == Guid.Empty) return Unauthorized();
 
-        var result = await _portalService.GetAppointmentsAsync(customerId, cancellationToken);
+        var result = await _portalService.GetPartRequestsAsync(customerId, cancellationToken);
         return Ok(result);
     }
 
-    // POST /api/Appointments — books a new appointment
+    // POST /api/PartRequests — submits a request for an unavailable part
     [HttpPost]
-    public async Task<IActionResult> BookAppointment(
-        [FromBody] BookAppointmentDto request,
+    public async Task<IActionResult> RequestPart(
+        [FromBody] RequestPartDto request,
         CancellationToken cancellationToken)
     {
         var customerId = GetCustomerId();
         if (customerId == Guid.Empty) return Unauthorized();
 
-        var result = await _portalService.BookAppointmentAsync(customerId, request, cancellationToken);
+        var result = await _portalService.RequestUnavailablePartAsync(customerId, request, cancellationToken);
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }

@@ -87,8 +87,9 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 
-// Register application services.
+// Register application services that require direct Infrastructure access.
 builder.Services.AddScoped<VehicleParts.Application.Interfaces.ICustomerService, VehicleParts.Infrastructure.Services.CustomerService>();
+builder.Services.AddScoped<VehicleParts.Application.Modules.CustomerPortal.Interfaces.ICustomerPortalService, VehicleParts.Infrastructure.Services.CustomerPortalService>();
 
 var app = builder.Build();
 
@@ -285,6 +286,81 @@ using (var scope = app.Services.CreateScope())
                 context.SaveChanges();
             }
         }
+
+        // Feature 13: Seed demo portal data so the UI can be reviewed immediately
+        // Use the seeded Aarav customer as the portal demo account
+        var portalCustomer = context.Users.FirstOrDefault(u => u.Email == "aarav@example.com");
+        if (portalCustomer != null && !context.Appointments.Any(a => a.CustomerId == portalCustomer.Id))
+        {
+            context.Appointments.AddRange(
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.Appointment
+                {
+                    CustomerId = portalCustomer.Id,
+                    ServiceType = "Oil Change",
+                    AppointmentAtUtc = DateTime.UtcNow.AddDays(3),
+                    Status = "Confirmed",
+                    Notes = "Please use 5W-30 synthetic oil."
+                },
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.Appointment
+                {
+                    CustomerId = portalCustomer.Id,
+                    ServiceType = "Brake Inspection",
+                    AppointmentAtUtc = DateTime.UtcNow.AddDays(10),
+                    Status = "Pending",
+                    Notes = string.Empty
+                },
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.Appointment
+                {
+                    CustomerId = portalCustomer.Id,
+                    ServiceType = "Tire Service",
+                    AppointmentAtUtc = DateTime.UtcNow.AddDays(-14),
+                    Status = "Completed",
+                    Notes = "Rotation and pressure check."
+                }
+            );
+        }
+
+        if (portalCustomer != null && !context.ServiceReviews.Any(r => r.CustomerId == portalCustomer.Id))
+        {
+            context.ServiceReviews.AddRange(
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.ServiceReview
+                {
+                    CustomerId = portalCustomer.Id,
+                    Rating = 5,
+                    ServiceType = "Tire Service",
+                    Comment = "Quick and professional. The team was very helpful and finished ahead of schedule."
+                },
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.ServiceReview
+                {
+                    CustomerId = portalCustomer.Id,
+                    Rating = 4,
+                    ServiceType = "Oil Change",
+                    Comment = "Good service overall. Waiting area could be more comfortable."
+                }
+            );
+        }
+
+        if (portalCustomer != null && !context.PartRequests.Any(pr => pr.CustomerId == portalCustomer.Id))
+        {
+            context.PartRequests.AddRange(
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.PartRequest
+                {
+                    CustomerId = portalCustomer.Id,
+                    RequestedPartName = "Toyota Corolla 2022 Cabin Air Filter",
+                    Description = "Original OEM part preferred.",
+                    Status = "Approved"
+                },
+                new VehicleParts.Domain.Modules.CustomerPortal.Entities.PartRequest
+                {
+                    CustomerId = portalCustomer.Id,
+                    RequestedPartName = "Bosch Windshield Wiper Blades 24-inch",
+                    Description = string.Empty,
+                    Status = "Pending"
+                }
+            );
+        }
+
+        context.SaveChanges();
     }
 }
 
