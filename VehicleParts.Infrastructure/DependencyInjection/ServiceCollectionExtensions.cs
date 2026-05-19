@@ -21,22 +21,31 @@ public static class ServiceCollectionExtensions
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
 
+        // ✅ FIX: Force migrations to live in Infrastructure project
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
+            options.UseNpgsql(
+                connectionString,
+                x => x.MigrationsAssembly("VehicleParts.Infrastructure")
+            ));
 
         // Email (MailKit / SMTP)
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.AddScoped<IEmailService, MailKitEmailService>();
 
+        // Security
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+
+        // Admin Core Repositories
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IVendorRepository, VendorRepository>();
         services.AddScoped<IPartsRepository, PartsRepository>();
 
+        // Finance Repositories
         services.AddScoped<IPurchaseRepository, PurchaseRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<ILowStockRepository, LowStockRepository>();
 
+        // Sales Repositories
         services.AddScoped<ISalesRepository, SalesRepository>();
 
         return services;

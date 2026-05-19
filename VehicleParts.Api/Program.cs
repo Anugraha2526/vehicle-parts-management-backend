@@ -6,13 +6,17 @@ using Microsoft.OpenApi.Models;
 using VehicleParts.Api.Extensions;
 using VehicleParts.Application.DependencyInjection;
 using VehicleParts.Infrastructure.DependencyInjection;
+using VehicleParts.Application.Interfaces;
+using VehicleParts.Infrastructure.Services;
+using VehicleParts.Domain.Modules.CustomerPortal.Entities;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddScoped<IPartRequestService, PartRequestService>();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
