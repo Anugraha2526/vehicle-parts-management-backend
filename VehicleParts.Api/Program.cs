@@ -137,10 +137,11 @@ using (var scope = app.Services.CreateScope())
         context.SaveChanges();
     }
 
-    // seed a default staff member if none exists yet
-    if (!context.Users.Any(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff || u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Admin))
+    // seed a default staff member or reset password if they exist
+    var anugrahaStaff = context.Users.FirstOrDefault(u => u.Email == "anugraha@example.com");
+    if (anugrahaStaff == null)
     {
-        var sampleStaff = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
+        anugrahaStaff = new VehicleParts.Domain.Modules.CustomerCRM.Entities.User
         {
             FullName = "Anugraha Staff",
             Email = "anugraha@example.com",
@@ -148,9 +149,13 @@ using (var scope = app.Services.CreateScope())
             Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff,
             IsActive = true
         };
-        context.Users.Add(sampleStaff);
-        context.SaveChanges();
+        context.Users.Add(anugrahaStaff);
     }
+    else
+    {
+        anugrahaStaff.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Staff@1234");
+    }
+    context.SaveChanges();
 
     // Seed Mock Parts matching the exact style pattern
     if (!context.Parts.Any())

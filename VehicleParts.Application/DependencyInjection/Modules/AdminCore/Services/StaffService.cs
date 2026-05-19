@@ -48,7 +48,9 @@ public sealed class StaffService : IStaffService
             FullName = dto.FullName,
             Email = dto.Email,
             PasswordHash = _passwordHasher.Hash(dto.Password),
-            Role = dto.Role
+            PhoneNumber = dto.PhoneNumber,
+            Address = dto.Address,
+            Role = VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Staff
         };
 
         var created = await _staffRepository.CreateAsync(staffMember, cancellationToken);
@@ -72,6 +74,8 @@ public sealed class StaffService : IStaffService
         if (dto.FullName != null) staffMember.FullName = dto.FullName;
         if (dto.Email != null) staffMember.Email = dto.Email;
         if (dto.Password != null) staffMember.PasswordHash = _passwordHasher.Hash(dto.Password);
+        if (dto.PhoneNumber != null) staffMember.PhoneNumber = dto.PhoneNumber;
+        if (dto.Address != null) staffMember.Address = dto.Address;
         if (dto.Role != null) staffMember.Role = dto.Role.Value;
         if (dto.IsActive != null) staffMember.IsActive = dto.IsActive.Value;
         staffMember.Touch();
@@ -110,6 +114,8 @@ public sealed class StaffService : IStaffService
         Id = u.Id,
         FullName = u.FullName,
         Email = u.Email,
+        PhoneNumber = u.PhoneNumber,
+        Address = u.Address,
         Role = u.Role.ToString(),
         IsActive = u.IsActive,
         CreatedAtUtc = u.CreatedAtUtc,

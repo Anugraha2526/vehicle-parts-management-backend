@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using VehicleParts.Domain.Modules.AdminCore.Enums;
 
 namespace VehicleParts.Application.Modules.AdminCore.DTOs;
 
@@ -21,6 +20,9 @@ public sealed class RegisterStaffDto
     [MaxLength(200)]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
-    public UserRole Role { get; set; } = UserRole.Staff;
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+
+    [MaxLength(300)]
+    public string? Address { get; set; }
 }

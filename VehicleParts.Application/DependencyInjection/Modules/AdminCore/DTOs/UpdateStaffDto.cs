@@ -19,6 +19,12 @@ public sealed class UpdateStaffDto
     [MaxLength(200)]
     public string? Password { get; set; }
 
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+
+    [MaxLength(300)]
+    public string? Address { get; set; }
+
     public UserRole? Role { get; set; }
 
     public bool? IsActive { get; set; }

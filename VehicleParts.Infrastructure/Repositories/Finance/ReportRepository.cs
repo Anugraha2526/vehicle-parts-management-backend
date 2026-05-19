@@ -52,12 +52,12 @@ public sealed class ReportRepository : IReportRepository
 
     public async Task<DashboardSummaryDto> GetDashboardSummaryAsync(CancellationToken cancellationToken = default)
     {
-        var totalCustomers = await _dbContext.Users.CountAsync(u => u.Role == "Customer", cancellationToken);
+        var totalCustomers = await _dbContext.Users.CountAsync(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer, cancellationToken);
         var totalVehicles = await _dbContext.Vehicles.CountAsync(cancellationToken);
         var totalTransactions = await _dbContext.Transactions.CountAsync(cancellationToken);
-        
+
         var today = DateTime.UtcNow.Date;
-        var registeredToday = await _dbContext.Users.CountAsync(u => u.Role == "Customer" && u.CreatedAtUtc >= today, cancellationToken);
+        var registeredToday = await _dbContext.Users.CountAsync(u => u.Role == VehicleParts.Domain.Modules.AdminCore.Enums.UserRole.Customer && u.CreatedAtUtc >= today, cancellationToken);
 
         return new DashboardSummaryDto
         {
