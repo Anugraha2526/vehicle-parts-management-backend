@@ -1,3 +1,4 @@
+namespace VehicleParts.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using VehicleParts.Domain.Modules.AdminCore.Entities;
 using VehicleParts.Domain.Modules.CustomerCRM.Entities;
@@ -5,7 +6,7 @@ using VehicleParts.Domain.Modules.CustomerPortal.Entities;
 using VehicleParts.Domain.Modules.Finance.Entities;
 using VehicleParts.Domain.Modules.Sales.Entities;
 
-namespace VehicleParts.Infrastructure.Persistence;
+using VehicleParts.Infrastructure.Persistence;
 
 public sealed class ApplicationDbContext : DbContext
 {
