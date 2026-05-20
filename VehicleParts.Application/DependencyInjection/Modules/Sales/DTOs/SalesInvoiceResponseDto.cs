@@ -7,6 +7,7 @@ public sealed class SalesInvoiceResponseDto
     public Guid CustomerId { get; init; }
     public string CustomerName { get; init; } = string.Empty;
     public Guid StaffId { get; init; }
+    public string StaffName { get; init; } = string.Empty;
     public DateTime SoldAtUtc { get; init; }
     public decimal SubTotal { get; init; }
     public bool LoyaltyDiscountApplied { get; init; }
