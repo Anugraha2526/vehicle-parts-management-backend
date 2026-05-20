@@ -25,11 +25,11 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter: Bearer {your JWT token}"
+        Description = "Enter your JWT token (without 'Bearer ' prefix — Swagger adds it automatically)"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -62,6 +62,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.MapInboundClaims = false; // keep "role" as "role", don't remap to long URI
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -71,7 +72,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-        // Remove default 5-minute tolerance so tokens expire exactly on time.
+        NameClaimType = "unique_name",
+        RoleClaimType = "role",
         ClockSkew = TimeSpan.Zero
     };
 });

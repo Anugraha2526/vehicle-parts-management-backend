@@ -50,6 +50,7 @@ public sealed class SalesRepository : ISalesRepository
         return await _db.SalesInvoices
             .Include(inv => inv.Items)
             .Include(inv => inv.Customer)
+            .Include(inv => inv.Staff)
             .FirstOrDefaultAsync(inv => inv.Id == invoiceId, cancellationToken);
     }
 
@@ -57,6 +58,8 @@ public sealed class SalesRepository : ISalesRepository
     {
         return await _db.SalesInvoices
             .Include(inv => inv.Customer)
+            .Include(inv => inv.Staff)
+            .Include(inv => inv.Items)
             .OrderByDescending(inv => inv.CreatedAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);

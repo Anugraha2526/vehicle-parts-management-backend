@@ -233,6 +233,7 @@ The ChitoSpare Team";
             CustomerId             = invoice.CustomerId,
             CustomerName           = invoice.Customer?.FullName ?? "Unknown",
             StaffId                = invoice.StaffId,
+            StaffName              = invoice.Staff?.FullName ?? "Unknown",
             SoldAtUtc              = invoice.CreatedAtUtc,
             SubTotal               = invoice.SubTotal,
             LoyaltyDiscountApplied = invoice.LoyaltyDiscountApplied,

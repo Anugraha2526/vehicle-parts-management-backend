@@ -8,7 +8,7 @@ namespace VehicleParts.Api.Controllers.AdminCore;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Staff")]
 public sealed class StaffController : ControllerBase
 {
     private readonly IStaffService _staffService;
@@ -55,7 +55,7 @@ public sealed class StaffController : ControllerBase
         }
     }
 
-    // register new staff and return 201 with location header
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> RegisterStaff([FromBody] RegisterStaffDto dto, CancellationToken cancellationToken)
     {
@@ -78,6 +78,7 @@ public sealed class StaffController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateStaff(Guid id, [FromBody] UpdateStaffDto dto, CancellationToken cancellationToken)
     {
@@ -105,6 +106,7 @@ public sealed class StaffController : ControllerBase
         }
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteStaff(Guid id, CancellationToken cancellationToken)
     {
@@ -125,7 +127,7 @@ public sealed class StaffController : ControllerBase
         }
     }
 
-    // flip active status without needing a full update request
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id:guid}/toggle-status")]
     public async Task<IActionResult> ToggleStatus(Guid id, CancellationToken cancellationToken)
     {
