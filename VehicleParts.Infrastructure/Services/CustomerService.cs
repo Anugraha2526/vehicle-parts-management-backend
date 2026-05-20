@@ -291,7 +291,6 @@ namespace VehicleParts.Infrastructure.Services
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Name, fullName),
-                new Claim(ClaimTypes.Role, role),
                 new Claim("role", role)
             };
 
