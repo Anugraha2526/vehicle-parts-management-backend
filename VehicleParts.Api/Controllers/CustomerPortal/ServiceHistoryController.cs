@@ -28,5 +28,5 @@ public sealed class ServiceHistoryController : ControllerBase
     }
 
     private Guid GetCustomerId() =>
-        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : Guid.Empty;
+        Guid.TryParse(User.FindFirstValue("nameid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : Guid.Empty;
 }

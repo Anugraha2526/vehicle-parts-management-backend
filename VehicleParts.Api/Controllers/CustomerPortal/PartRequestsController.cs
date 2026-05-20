@@ -45,7 +45,7 @@ public sealed class PartRequestsController : ControllerBase
 
     private Guid GetCustomerId()
     {
-        var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var raw = User.FindFirstValue("nameid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(raw, out var id) ? id : Guid.Empty;
     }
 }
